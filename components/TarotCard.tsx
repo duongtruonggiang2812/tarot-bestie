@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { TarotCard as TarotCardType } from "@/data/tarotCards";
+import { getCardImageUrl } from "@/lib/cardImage";
 
 interface TarotCardProps {
   card: TarotCardType;
@@ -13,15 +15,12 @@ interface TarotCardProps {
   showBack?: boolean;
 }
 
-const CARD_BACK_PATTERN = "🌙✨🔮⭐💫🌟✨🔮🌙";
-
 export default function TarotCard({
   card,
   index,
   isRevealed = false,
   position,
   onClick,
-  showBack = false,
 }: TarotCardProps) {
   const [flipped, setFlipped] = useState(false);
 
@@ -33,6 +32,7 @@ export default function TarotCard({
   };
 
   const isShowing = isRevealed || flipped;
+  const imageUrl = getCardImageUrl(card);
 
   return (
     <motion.div
@@ -48,7 +48,7 @@ export default function TarotCard({
       )}
 
       <div
-        className="tarot-card w-32 h-48 sm:w-36 sm:h-56 cursor-pointer"
+        className="tarot-card w-32 h-56 sm:w-36 sm:h-64 cursor-pointer"
         onClick={handleClick}
         role="button"
         tabIndex={0}
@@ -66,11 +66,11 @@ export default function TarotCard({
             className="tarot-card-front absolute inset-0 rounded-2xl overflow-hidden"
             style={{ backfaceVisibility: "hidden" }}
           >
-            <div className="w-full h-full glass-dark rounded-2xl flex flex-col items-center justify-center gap-1 border-2 border-purple-deep/30 shadow-lg">
+            <div className="w-full h-full glass-dark rounded-2xl flex flex-col items-center justify-center gap-2 border-2 border-purple-deep/30 shadow-lg bg-gradient-to-b from-purple-deep/20 to-lavender/40">
               <div className="text-4xl mb-1">🔮</div>
-              <div className="grid grid-cols-3 gap-1 text-xs opacity-50 px-3">
-                {CARD_BACK_PATTERN.split("").map((char, i) => (
-                  <span key={i}>{char}</span>
+              <div className="flex flex-col gap-0.5 items-center opacity-40">
+                {["✨🌙✨", "⭐💫⭐", "✨🌟✨", "⭐💫⭐", "✨🌙✨"].map((row, i) => (
+                  <span key={i} className="text-xs tracking-widest">{row}</span>
                 ))}
               </div>
               <p className="text-xs font-body text-purple-deep/60 mt-2 font-semibold">
@@ -79,46 +79,29 @@ export default function TarotCard({
             </div>
           </div>
 
-          {/* Card Front */}
+          {/* Card Front — real Rider-Waite image */}
           <div
-            className="tarot-card-back absolute inset-0 rounded-2xl overflow-hidden"
+            className="tarot-card-back absolute inset-0 rounded-2xl overflow-hidden shadow-xl border-2 border-purple-mid/40"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
-            <div
-              className={`w-full h-full rounded-2xl flex flex-col items-center justify-between p-3 shadow-xl border-2 ${
-                card.isReversed
-                  ? "border-pink-soft/50 bg-gradient-to-b from-rose to-lavender"
-                  : "border-purple-mid/40 bg-gradient-to-b from-lavender to-cream"
-              }`}
-            >
-              {/* Card number/suit tag */}
-              <div className="w-full flex justify-between items-start">
-                <span className="text-xs font-body text-purple-deep/60 font-bold">
-                  {card.arcana === "major"
-                    ? `${card.number}`
-                    : card.suit?.charAt(0).toUpperCase()}
-                </span>
-                <span className="text-xs text-purple-deep/40">
-                  {card.isReversed ? "↕" : "↑"}
-                </span>
-              </div>
-
-              {/* Main emoji */}
-              <div
-                className={`text-5xl ${card.isReversed ? "rotate-180" : ""} transition-transform`}
-              >
-                {card.emoji}
-              </div>
-
-              {/* Card name */}
-              <div className="text-center">
-                <p className="text-xs font-display font-bold text-purple-deep leading-tight">
-                  {card.nameVi}
-                </p>
-                <p className="text-[10px] font-body text-purple-deep/50 mt-0.5">
-                  {card.isReversed ? "Ngược" : "Xuôi"}
-                </p>
-              </div>
+            <div className={`relative w-full h-full ${card.isReversed ? "rotate-180" : ""}`}>
+              <Image
+                src={imageUrl}
+                alt={card.nameVi}
+                fill
+                className="object-cover rounded-2xl"
+                sizes="(max-width: 640px) 128px, 144px"
+                priority={index < 3}
+              />
+            </div>
+            {/* Name overlay at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl px-2 py-2 pointer-events-none">
+              <p className="text-[11px] font-display font-bold text-white text-center leading-tight drop-shadow">
+                {card.nameVi}
+              </p>
+              <p className="text-[9px] font-body text-white/70 text-center">
+                {card.isReversed ? "↕ Ngược" : "↑ Xuôi"}
+              </p>
             </div>
           </div>
         </motion.div>
