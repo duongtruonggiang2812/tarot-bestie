@@ -1,26 +1,152 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Custom colors */
+  --color-lavender: #E8D5F5;
+  --color-rose: #FFD6E0;
+  --color-peach: #FFE4D6;
+  --color-mint: #D5F5E3;
+  --color-cream: #FFF9F0;
+  --color-purple-deep: #7B4FA6;
+  --color-purple-mid: #9B6CC7;
+  --color-pink-soft: #E8739A;
+
+  /* Fonts */
+  --font-display: var(--font-playfair);
+  --font-body: var(--font-nunito);
+  --font-sans: var(--font-nunito);
+
+  /* Custom animations */
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-sparkle: sparkle 1.5s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-card-flip: cardFlip 0.6s ease-in-out;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes cardFlip {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(90deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+@keyframes particleFly {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-80px) scale(0); opacity: 0; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+:root {
+  --background: #FFF9F0;
+  --foreground: #3D2B5A;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  min-height: 100vh;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+  background: rgba(123, 79, 166, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(123, 79, 166, 0.3);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #7B4FA6, #E8739A, #FFB347);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-shimmer {
+  background: linear-gradient(90deg, #7B4FA6, #E8739A, #FFB347, #E8739A, #7B4FA6);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Background gradient */
+.bg-celestial {
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFE4D6 25%, #FFD6E0 50%, #E8D5F5 75%, #D5F5E3 100%);
+}
+
+/* Card styles */
+.tarot-card {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.tarot-card-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tarot-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.tarot-card-front,
+.tarot-card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.tarot-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FFE4D6;
+}
+::-webkit-scrollbar-thumb {
+  background: #9B6CC7;
+  border-radius: 3px;
+}
+
+/* Particle */
+.particle {
+  animation: particleFly 2s ease-out forwards;
+}
+
+/* Star twinkle */
+.star {
+  animation: twinkle var(--duration, 2s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
 }
