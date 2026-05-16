@@ -1,4 +1,4 @@
-import { deepseek } from "@/lib/deepseek";
+import { getDeepseekClient } from "@/lib/deepseek";
 import { NextRequest } from "next/server";
 
 const SYSTEM_PROMPT = `Bạn là một nhà chiêm tinh tarot huyền bí và am hiểu, chuyên đọc bài tarot cho thế hệ Gen Z Việt Nam.
@@ -60,7 +60,7 @@ Hãy đọc và giải thích trải bài này cho mình nhé! Nhớ kết nối
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const response = await deepseek.chat.completions.create({
+          const response = await getDeepseekClient().chat.completions.create({
             model: "deepseek-chat",
             max_tokens: 1500,
             stream: true,
