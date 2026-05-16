@@ -84,18 +84,18 @@ export default function TarotCard({
             className="tarot-card-back absolute inset-0 rounded-2xl overflow-hidden shadow-xl border-2 border-purple-mid/40"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
-            <div className="relative w-full h-full">
+            {/* Image wrapper — rotates for reversed cards */}
+            <div className={`absolute inset-0 ${card.isReversed ? "rotate-180" : ""}`}>
               <Image
                 src={imageUrl}
                 alt={card.nameVi}
                 fill
-                className="object-cover rounded-2xl"
-                style={card.isReversed ? { transform: "rotate(180deg)" } : {}}
+                className="object-cover"
                 sizes="(max-width: 640px) 128px, 144px"
                 priority={index < 3}
               />
             </div>
-            {/* Name overlay at bottom */}
+            {/* Name overlay — always right-side up */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl px-2 py-2 pointer-events-none">
               <p className="text-[11px] font-display font-bold text-white text-center leading-tight drop-shadow">
                 {card.nameVi}
