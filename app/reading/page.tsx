@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
@@ -70,6 +70,24 @@ function ReadingPageInner() {
   const [showPurchase, setShowPurchase] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+  // After OAuth redirect: restore saved cards so user doesn't need to re-shuffle
+  useEffect(() => {
+    if (status === "authenticated") {
+      try {
+        const saved = sessionStorage.getItem("tarot-pending");
+        if (saved) {
+          const { cards: savedCards, revealedIndices, theme, count } = JSON.parse(saved);
+          setCards(savedCards);
+          setRevealedCards(new Set<number>(revealedIndices));
+          setSelectedTheme(theme);
+          setSelectedCount(count);
+          setPhase("revealing"); // all cards already face-up, ready for AI
+          sessionStorage.removeItem("tarot-pending");
+        }
+      } catch {}
+    }
+  }, [status]);
+
   const isFreeRead = freeReadsToday < FREE_READS_PER_DAY;
   const cost = selectedCount === 1 ? COIN_COSTS.read1 : selectedCount === 3 ? COIN_COSTS.read3 : COIN_COSTS.read5;
   const canAfford = isFreeRead || cost === 0 || coins >= cost;
@@ -123,8 +141,17 @@ function ReadingPageInner() {
   }, [cards]);
 
   const handleGetReading = async () => {
-    // Require login for AI reading
+    // Require login for AI reading — save current cards so they survive the OAuth redirect
     if (!session) {
+      sessionStorage.setItem(
+        "tarot-pending",
+        JSON.stringify({
+          cards,
+          revealedIndices: Array.from(revealedCards),
+          theme: selectedTheme,
+          count: selectedCount,
+        })
+      );
       setShowLoginPrompt(true);
       return;
     }
@@ -255,13 +282,12 @@ function ReadingPageInner() {
 
               <div className="text-5xl mt-1">🔮</div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 <h3 className="font-display text-xl font-bold text-purple-deep">
                   Đăng nhập để AI đọc bài
                 </h3>
                 <p className="font-body text-purple-deep/60 text-sm leading-relaxed">
-                  Bài đã trải xong rồi!<br />
-                  Đăng nhập để AI bestie phân tích chi tiết và lưu lịch sử xem bói nhé ✨
+                  Bài của bestie vẫn được giữ nguyên — đăng nhập xong là AI đọc luôn, không cần làm lại từ đầu nhé! ✨
                 </p>
               </div>
 
