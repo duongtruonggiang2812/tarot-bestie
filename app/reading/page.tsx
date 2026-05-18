@@ -241,13 +241,8 @@ function ReadingPageInner() {
               <div>
                 <h3 className="font-display text-xl font-bold text-purple-deep">Đăng nhập để nhận AI đọc bài</h3>
                 <p className="font-body text-purple-deep/65 text-sm mt-2 leading-relaxed">
-                  Trải bài miễn phí cho tất cả!<br/>
-                  Đăng nhập để nhận phân tích chi tiết từ AI và lưu lịch sử xem bói ✨
+                  Bài đã trải xong rồi — đăng nhập để AI bestie phân tích chi tiết cho bạn và lưu lại lịch sử xem bói nhé ✨
                 </p>
-              </div>
-              <div className="w-full rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: "linear-gradient(135deg,#fef9c3,#fde68a)" }}>
-                <span className="text-xl">🎁</span>
-                <p className="font-body text-amber-800 text-sm font-bold text-left">Thành viên mới tặng 20 xu miễn phí!</p>
               </div>
               <button
                 onClick={() => signIn("google")}
