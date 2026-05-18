@@ -5,15 +5,21 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useCoinStore, COIN_PACKAGES } from "@/store/coinStore";
-import Link from "next/link";
 
 const HOW_IT_WORKS = [
-  { emoji: "🎴", label: "Xào & lật bài", cost: "Miễn phí mãi mãi" },
-  { emoji: "🔮", label: "AI đọc 1 lá", cost: "2 xu" },
-  { emoji: "🔮", label: "AI đọc 3 lá", cost: "4 xu" },
-  { emoji: "🔮", label: "AI đọc 5 lá", cost: "6 xu" },
-  { emoji: "💬", label: "Chat hỏi thêm bestie", cost: "1 xu / tin" },
-  { emoji: "📅", label: "Điểm danh mỗi ngày", cost: "+3 xu miễn phí" },
+  { emoji: "🎴", label: "Xào & lật bài", cost: "Miễn phí", free: true },
+  { emoji: "🔮", label: "AI đọc 1 lá", cost: "2 xu", free: false },
+  { emoji: "🔮", label: "AI đọc 3 lá", cost: "4 xu", free: false },
+  { emoji: "🔮", label: "AI đọc 5 lá", cost: "6 xu", free: false },
+  { emoji: "💬", label: "Chat hỏi thêm bestie", cost: "1 xu / tin", free: false },
+  { emoji: "📅", label: "Điểm danh hàng ngày", cost: "+3 xu free", free: true },
+];
+
+const PKG_COLORS = [
+  { bg: "from-slate-50 to-gray-50", border: "border-gray-200", btn: "from-gray-600 to-gray-700" },
+  { bg: "from-purple-50 to-fuchsia-50", border: "border-purple-300", btn: "from-purple-600 to-fuchsia-600" },
+  { bg: "from-violet-50 to-purple-50", border: "border-violet-300", btn: "from-violet-600 to-purple-600" },
+  { bg: "from-amber-50 to-yellow-50", border: "border-amber-300", btn: "from-amber-500 to-orange-500" },
 ];
 
 export default function CoinsPage() {
@@ -22,85 +28,88 @@ export default function CoinsPage() {
   const { coins } = useCoinStore();
   const [toast, setToast] = useState<string | null>(null);
 
-  const handleBuy = (pkg: typeof COIN_PACKAGES[0]) => {
-    setToast(`Tính năng thanh toán đang cập nhật — mình sẽ sớm ra mắt nhé! 💕`);
-    setTimeout(() => setToast(null), 3500);
+  const handleBuy = (_pkg: typeof COIN_PACKAGES[0]) => {
+    setToast("Thanh toán đang được tích hợp — sắp ra mắt rồi! Cảm ơn bestie đã ủng hộ 💜");
+    setTimeout(() => setToast(null), 4000);
   };
 
   return (
     <div className="min-h-screen bg-celestial relative overflow-hidden">
-      {/* Background sparkles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {["10%", "30%", "55%", "75%", "90%"].map((left, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-2xl"
-            style={{ left, top: `${10 + i * 15}%` }}
-            animate={{ y: [0, -12, 0], opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.5 }}
-          >
-            ✨
-          </motion.div>
+
+      {/* Floating background blobs */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, #a855f7, transparent)" }} />
+        <div className="absolute top-1/3 -right-24 w-72 h-72 rounded-full opacity-15"
+          style={{ background: "radial-gradient(circle, #ec4899, transparent)" }} />
+        <div className="absolute bottom-0 left-1/4 w-64 h-64 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #7c3aed, transparent)" }} />
+        {["8%","25%","50%","70%","88%"].map((left, i) => (
+          <motion.span key={i} className="absolute text-lg select-none"
+            style={{ left, top: `${8 + i * 16}%` }}
+            animate={{ y: [0, -14, 0], opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 3.5 + i * 0.6, repeat: Infinity, delay: i * 0.4 }}
+          >✨</motion.span>
         ))}
       </div>
 
       {/* Header */}
-      <div className="sticky top-0 z-10 glass border-b border-white/40 backdrop-blur-md">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-purple-deep/70 font-body font-semibold text-base hover:text-purple-deep transition-colors"
-          >
+      <div className="sticky top-0 z-20 glass border-b border-white/40 backdrop-blur-md">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-purple-deep/70 font-body font-semibold text-sm hover:text-purple-deep transition-colors">
             ← Quay lại
           </button>
-          <span className="font-display font-bold text-purple-deep text-lg">🪙 Nạp Xu</span>
+          <span className="font-display font-bold text-purple-deep">🪙 Nạp Xu</span>
           {session && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-white/60 font-body font-bold text-sm text-purple-deep">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/70 border border-purple-mid/30 font-body font-bold text-sm text-purple-deep shadow-sm">
               🪙 {coins}
             </div>
           )}
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 relative z-10">
+      <div className="max-w-lg mx-auto px-4 py-6 relative z-10 pb-20">
 
-        {/* Hero */}
+        {/* Balance card */}
         <motion.div
-          className="text-center mb-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl p-6 mb-6 text-center relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)" }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
         >
-          <div className="text-6xl mb-3">🔮</div>
-          <h1 className="font-display text-3xl font-bold text-purple-deep mb-2">
-            Nạp xu để hỏi bestie thêm nhé!
-          </h1>
-          <p className="font-body text-purple-deep/60 text-base">
-            Xào bài & lật bài mãi mãi miễn phí · Tốn xu khi nhận AI đọc bài 💜
-          </p>
+          <div className="absolute inset-0 opacity-20"
+            style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+          <p className="font-body text-white/70 text-sm mb-1 relative z-10">Số xu hiện tại</p>
+          <p className="font-display text-5xl font-bold text-white relative z-10">{coins}</p>
+          <p className="font-body text-white/60 text-xs mt-1 relative z-10">🪙 xu</p>
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 relative z-10">
+            <span className="text-xs font-body text-white/80">📅 Điểm danh hàng ngày = +3 xu miễn phí</span>
+          </div>
         </motion.div>
 
         {/* How it works */}
         <motion.div
-          className="mb-8 rounded-3xl overflow-hidden"
-          style={{ background: "linear-gradient(160deg,#fff 0%,#f5f0ff 100%)" }}
-          initial={{ opacity: 0, y: 16 }}
+          className="rounded-2xl overflow-hidden mb-6 shadow-sm"
+          style={{ background: "linear-gradient(160deg,#fff 0%,#faf5ff 100%)" }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="px-5 py-4 border-b border-purple-mid/10">
-            <h2 className="font-display font-bold text-purple-deep text-lg">Xu dùng để làm gì?</h2>
+          <div className="px-5 pt-4 pb-2">
+            <h2 className="font-display font-bold text-purple-deep text-base">Xu dùng để làm gì? 🤔</h2>
           </div>
-          <div className="divide-y divide-purple-mid/8">
+          <div className="px-2 pb-2">
             {HOW_IT_WORKS.map((item, i) => (
-              <div key={i} className="flex items-center justify-between px-5 py-3">
+              <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-deep/5 transition-colors">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{item.emoji}</span>
+                  <span className="text-lg w-7 text-center">{item.emoji}</span>
                   <span className="font-body text-purple-deep/80 text-sm">{item.label}</span>
                 </div>
-                <span className={`font-body font-bold text-sm ${
-                  item.cost.includes("Miễn phí") || item.cost.includes("+")
-                    ? "text-emerald-600"
-                    : "text-purple-deep"
+                <span className={`font-body font-bold text-sm px-2.5 py-0.5 rounded-full ${
+                  item.free
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-purple-100 text-purple-700"
                 }`}>
                   {item.cost}
                 </span>
@@ -110,105 +119,90 @@ export default function CoinsPage() {
         </motion.div>
 
         {/* Packages */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div className="mb-2">
           <h2 className="font-display font-bold text-purple-deep text-xl mb-4 text-center">
-            Chọn gói của bạn 👇
+            Chọn gói 👇
           </h2>
 
-          <div className="flex flex-col gap-4">
-            {COIN_PACKAGES.map((pkg, i) => (
-              <motion.div
-                key={pkg.id}
-                className={`relative rounded-3xl overflow-hidden ${
-                  pkg.popular
-                    ? "shadow-xl shadow-purple-mid/20"
-                    : "shadow-md"
-                }`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 + i * 0.07 }}
-                whileHover={{ scale: 1.02, y: -2 }}
-              >
-                {/* Popular badge */}
-                {pkg.popular && (
-                  <div className="bg-gradient-to-r from-purple-deep to-pink-soft text-white text-xs font-bold font-body text-center py-1.5 tracking-wider uppercase">
-                    ⭐ Phổ biến nhất · Tiết kiệm nhất
-                  </div>
-                )}
-
-                <div
-                  className={`p-5 flex items-center justify-between ${
-                    pkg.popular
-                      ? "bg-gradient-to-r from-purple-deep/5 to-pink-soft/10 border-2 border-purple-mid/40"
-                      : "bg-white/80 border border-white/60"
+          <div className="flex flex-col gap-3">
+            {COIN_PACKAGES.map((pkg, i) => {
+              const colors = PKG_COLORS[i] ?? PKG_COLORS[0];
+              return (
+                <motion.div
+                  key={pkg.id}
+                  className={`relative rounded-2xl border-2 overflow-hidden bg-gradient-to-r ${colors.bg} ${colors.border} ${
+                    pkg.popular ? "shadow-lg shadow-purple-mid/20" : "shadow-sm"
                   }`}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 + i * 0.06 }}
+                  whileHover={{ scale: 1.015, y: -2 }}
+                  whileTap={{ scale: 0.99 }}
                 >
-                  {/* Left: name + coins */}
-                  <div>
-                    <p className="font-display font-bold text-purple-deep text-lg leading-tight">
-                      {pkg.name}
-                    </p>
-                    <p className="font-body text-purple-deep/60 text-sm mt-0.5">
-                      🪙 {pkg.coins} xu
-                      {pkg.coins >= 100 && (
-                        <span className="ml-2 text-emerald-600 font-semibold">
-                          (~{Math.floor(pkg.coins / 2)} lần đọc bài)
+                  {/* Popular ribbon */}
+                  {pkg.popular && (
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-body text-white uppercase tracking-wide"
+                        style={{ background: "linear-gradient(90deg,#7c3aed,#ec4899)" }}>
+                        🔥 Phổ biến
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center p-4 gap-4">
+                    {/* Left */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-display font-bold text-purple-deep text-base leading-tight">
+                        {pkg.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="font-body text-purple-deep/70 text-sm font-semibold">
+                          🪙 {pkg.coins} xu
                         </span>
-                      )}
-                    </p>
-                  </div>
+                        <span className="text-purple-deep/30 text-xs">·</span>
+                        <span className="font-body text-purple-deep/50 text-xs">
+                          ~{Math.floor(pkg.coins / 4)} lần đọc bài
+                        </span>
+                      </div>
+                    </div>
 
-                  {/* Right: price + buy */}
-                  <div className="flex flex-col items-end gap-2">
-                    <span
-                      className={`px-4 py-1.5 rounded-full font-body font-bold text-base ${
-                        pkg.popular
-                          ? "bg-gradient-to-r from-purple-deep to-purple-mid text-white"
-                          : "bg-gradient-to-r from-purple-deep/80 to-pink-soft/80 text-white"
-                      }`}
-                    >
-                      {pkg.price}
-                    </span>
-                    <button
-                      onClick={() => handleBuy(pkg)}
-                      className="text-sm font-body font-semibold text-purple-deep/60 hover:text-purple-deep underline transition-colors"
-                    >
-                      Mua ngay →
-                    </button>
+                    {/* Right */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <p className="font-display font-bold text-purple-deep text-lg leading-none">
+                        {pkg.price}
+                      </p>
+                      <button
+                        onClick={() => handleBuy(pkg)}
+                        className={`px-4 py-1.5 rounded-full text-white font-body font-bold text-sm bg-gradient-to-r ${colors.btn} shadow-md hover:shadow-lg hover:opacity-90 transition-all active:scale-95`}
+                      >
+                        Mua ngay
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Daily bonus reminder */}
-        <motion.div
-          className="mt-8 rounded-2xl p-4 flex items-center gap-4"
-          style={{ background: "linear-gradient(135deg, #ecfdf5, #d1fae5)" }}
+        {/* Coming soon note */}
+        <motion.p
+          className="text-center text-xs font-body text-purple-deep/35 mt-4 mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <span className="text-3xl">📅</span>
-          <div>
-            <p className="font-body font-bold text-emerald-700 text-sm">Đăng nhập mỗi ngày để nhận 3 xu miễn phí!</p>
-            <p className="font-body text-emerald-600/70 text-xs mt-0.5">Quay lại app mỗi ngày — xu tự cộng, khỏi lo 🌿</p>
-          </div>
-        </motion.div>
+          💳 Thanh toán qua MoMo · VNPay · Thẻ quốc tế — sắp ra mắt!
+        </motion.p>
 
-        {/* Back to reading */}
-        <div className="mt-8 text-center">
-          <Link
-            href="/reading"
-            className="font-body text-purple-deep/50 hover:text-purple-deep text-sm transition-colors underline"
+        {/* Back */}
+        <div className="text-center">
+          <button
+            onClick={() => router.back()}
+            className="font-body text-purple-deep/40 hover:text-purple-deep text-sm transition-colors"
           >
             ← Quay lại trải bài
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -216,11 +210,11 @@ export default function CoinsPage() {
       <AnimatePresence>
         {toast && (
           <motion.div
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-lg font-body text-sm font-semibold text-white max-w-xs text-center"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3.5 rounded-2xl shadow-xl font-body text-sm font-semibold text-white max-w-[320px] text-center leading-snug"
             style={{ background: "linear-gradient(135deg,#7c3aed,#a855f7)" }}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
           >
             {toast}
           </motion.div>
