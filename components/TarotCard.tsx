@@ -141,56 +141,35 @@ export default function TarotCard({
                 border: card.isReversed ? "2px solid #f9a8d4" : "2px solid rgba(167,139,250,0.4)",
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageUrl}
-                alt={card.nameVi}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-
-              {/* Reversed overlay tint */}
-              {card.isReversed && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "linear-gradient(135deg, rgba(249,168,212,0.15) 0%, rgba(196,181,253,0.15) 100%)",
-                    pointerEvents: "none",
-                  }}
+              {/* Image wrapper — rotates for reversed cards */}
+              <div style={{
+                position: "absolute",
+                top: 0, left: 0, right: 0, bottom: 0,
+                transform: card.isReversed ? "rotate(180deg)" : "none",
+                transformOrigin: "50% 50%",
+              }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl}
+                  alt={card.nameVi}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
-              )}
+              </div>
 
-              {/* Reversed badge top */}
-              {card.isReversed && (
-                <div style={{
-                  position: "absolute",
-                  top: 6,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  background: "rgba(249,168,212,0.85)",
-                  borderRadius: 99,
-                  padding: "1px 8px",
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: "#7c3aed",
-                  whiteSpace: "nowrap",
-                  pointerEvents: "none",
-                }}>
-                  ↕ NGƯỢC
-                </div>
-              )}
-
-              {/* Name overlay bottom */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent rounded-b-2xl px-2 py-2 pointer-events-none">
-                <p className="text-[11px] font-display font-bold text-white text-center leading-tight drop-shadow">
+              {/* Name overlay — always right-side up (sibling of rotating div) */}
+              <div style={{
+                position: "absolute",
+                bottom: 0, left: 0, right: 0,
+                background: "linear-gradient(to top, rgba(0,0,0,0.82), transparent)",
+                borderRadius: "0 0 16px 16px",
+                padding: "20px 8px 8px",
+                pointerEvents: "none",
+              }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "white", textAlign: "center", margin: 0 }}>
                   {card.nameVi}
+                </p>
+                <p style={{ fontSize: 9, color: "rgba(255,255,255,0.65)", textAlign: "center", margin: 0 }}>
+                  {card.isReversed ? "↕ Ngược" : "↑ Xuôi"}
                 </p>
               </div>
             </div>
