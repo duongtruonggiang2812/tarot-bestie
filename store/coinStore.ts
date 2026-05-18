@@ -34,8 +34,8 @@ export function getAiReadCost(cardCount: number): number {
 
 // Coin packages
 export const COIN_PACKAGES = [
-  { id: "starter", name: "✨ Thử",    coins: 30,  price: "19.000đ", popular: false },
-  { id: "popular", name: "🔮 Phổ biến", coins: 100, price: "59.000đ", popular: true  },
-  { id: "bestie",  name: "💜 Bestie", coins: 250, price: "129.000đ", popular: false },
-  { id: "vip",     name: "👑 VIP",    coins: 600, price: "269.000đ", popular: false },
+  { id: "starter", name: "✨ Thử",      coins: 30,  price: "30.000đ",  popular: false },
+  { id: "popular", name: "🔮 Phổ biến", coins: 100, price: "80.000đ",  popular: true  },
+  { id: "bestie",  name: "💜 Bestie",   coins: 200, price: "140.000đ", popular: false },
+  { id: "vip",     name: "👑 VIP",      coins: 600, price: "300.000đ", popular: false },
 ];
