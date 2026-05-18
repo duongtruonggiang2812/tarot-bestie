@@ -16,8 +16,6 @@ interface TarotCardProps {
 
 interface Particle {
   id: number;
-  x: number;
-  y: number;
   angle: number;
   emoji: string;
 }
@@ -39,13 +37,10 @@ export default function TarotCard({
   const isShowing = isRevealed || flipped;
   const imageUrl = getCardImageUrl(card);
 
-  // Trigger particle burst when card reveals
   useEffect(() => {
     if (isShowing && particles.length === 0) {
       const newParticles: Particle[] = Array.from({ length: 8 }, (_, i) => ({
         id: i,
-        x: 50,
-        y: 50,
         angle: (i / 8) * 360,
         emoji: STAR_EMOJIS[i % STAR_EMOJIS.length],
       }));
@@ -77,7 +72,15 @@ export default function TarotCard({
         </span>
       )}
 
-      <div className="relative">
+      <div
+        className="relative w-44 h-72 sm:w-48 sm:h-80 cursor-pointer"
+        style={{ perspective: "1000px" }}
+        onClick={handleClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && handleClick()}
+        aria-label={isShowing ? `Lá bài ${card.nameVi}` : "Lật bài"}
+      >
         {/* Particle burst */}
         <AnimatePresence>
           {particles.map((p) => (
@@ -100,26 +103,19 @@ export default function TarotCard({
           ))}
         </AnimatePresence>
 
-        <div
-          className="tarot-card w-44 h-72 sm:w-48 sm:h-80 cursor-pointer"
-          onClick={handleClick}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && handleClick()}
-          aria-label={isShowing ? `Lá bài ${card.nameVi}` : "Lật bài"}
-        >
-          <motion.div
-            className="tarot-card-inner relative w-full h-full"
-            animate={{ rotateY: isShowing ? 180 : 0 }}
-            transition={{ duration: 0.7, ease: [0.175, 0.885, 0.32, 1.275] }}
-            style={{ transformStyle: "preserve-3d" }}
-          >
-            {/* Card Back */}
-            <div
-              className="tarot-card-front absolute inset-0 rounded-2xl overflow-hidden"
-              style={{ backfaceVisibility: "hidden" }}
+        {/* Card flip using AnimatePresence — no preserve-3d, no backface-visibility bugs */}
+        <AnimatePresence initial={false} mode="popLayout">
+          {!isShowing ? (
+            /* ── Card Back ── */
+            <motion.div
+              key="back"
+              className="absolute inset-0 rounded-2xl overflow-hidden border-2 border-purple-mid/40 shadow-xl"
+              initial={{ rotateY: 90, opacity: 0 }}
+              animate={{ rotateY: 0, opacity: 1 }}
+              exit={{ rotateY: -90, opacity: 0 }}
+              transition={{ duration: 0.35, ease: "easeInOut" }}
             >
-              <div className="w-full h-full bg-gradient-to-b from-purple-deep via-[#4a2070] to-[#2a0f4a] rounded-2xl flex flex-col items-center justify-center gap-2 border-2 border-purple-mid/40 shadow-xl">
+              <div className="w-full h-full bg-gradient-to-b from-purple-deep via-[#4a2070] to-[#2a0f4a] flex flex-col items-center justify-center gap-2">
                 <div className="text-5xl mb-2">🔮</div>
                 <div className="flex flex-col gap-0.5 items-center opacity-30">
                   {["✨🌙✨", "⭐💫⭐", "✨🌟✨", "⭐💫⭐", "✨🌙✨"].map((row, i) => (
@@ -130,20 +126,21 @@ export default function TarotCard({
                   Chạm để lật ✨
                 </p>
               </div>
-            </div>
-
-            {/* Card Front */}
-            <div
-              className="tarot-card-back absolute inset-0 rounded-2xl shadow-xl"
+            </motion.div>
+          ) : (
+            /* ── Card Front ── */
+            <motion.div
+              key="front"
+              className="absolute inset-0 rounded-2xl overflow-hidden shadow-xl"
               style={{
-                backfaceVisibility: "hidden",
-                WebkitBackfaceVisibility: "hidden",
-                transform: "rotateY(180deg)",
-                border: card.isReversed ? "2px solid #f9a8d4" : "2px solid rgba(167,139,250,0.4)",
-                overflow: "hidden",
-                position: "absolute",
-                top: 0, left: 0, right: 0, bottom: 0,
+                border: card.isReversed
+                  ? "2px solid #f9a8d4"
+                  : "2px solid rgba(167,139,250,0.4)",
               }}
+              initial={{ rotateY: 90, opacity: 0 }}
+              animate={{ rotateY: 0, opacity: 1 }}
+              exit={{ rotateY: -90, opacity: 0 }}
+              transition={{ duration: 0.35, ease: "easeInOut" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -159,24 +156,44 @@ export default function TarotCard({
               />
 
               {/* Name overlay — always right-side up */}
-              <div style={{
-                position: "absolute",
-                bottom: 0, left: 0, right: 0,
-                background: "linear-gradient(to top, rgba(0,0,0,0.82), transparent)",
-                borderRadius: "0 0 14px 14px",
-                padding: "20px 8px 8px",
-                pointerEvents: "none",
-              }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "white", textAlign: "center", margin: 0 }}>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background:
+                    "linear-gradient(to top, rgba(0,0,0,0.82), transparent)",
+                  borderRadius: "0 0 14px 14px",
+                  padding: "20px 8px 8px",
+                  pointerEvents: "none",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "white",
+                    textAlign: "center",
+                    margin: 0,
+                  }}
+                >
                   {card.nameVi}
                 </p>
-                <p style={{ fontSize: 9, color: "rgba(255,255,255,0.65)", textAlign: "center", margin: 0 }}>
+                <p
+                  style={{
+                    fontSize: 9,
+                    color: "rgba(255,255,255,0.65)",
+                    textAlign: "center",
+                    margin: 0,
+                  }}
+                >
                   {card.isReversed ? "↕ Ngược" : "↑ Xuôi"}
                 </p>
               </div>
-            </div>
-          </motion.div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Keywords shown after reveal */}
@@ -185,7 +202,7 @@ export default function TarotCard({
           className="flex flex-wrap gap-1 justify-center max-w-44"
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.4 }}
         >
           {card.keywords.slice(0, 2).map((kw) => (
             <span
