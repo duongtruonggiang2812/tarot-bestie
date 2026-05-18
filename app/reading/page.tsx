@@ -15,7 +15,7 @@ import PurchaseModal from "@/components/PurchaseModal";
 import CoinBadge from "@/components/CoinBadge";
 import { TarotCard as TarotCardType, getRandomCards } from "@/data/tarotCards";
 import { getCardImageUrl } from "@/lib/cardImage";
-import { useCoinStore, COIN_COSTS, FREE_READS_PER_DAY } from "@/store/coinStore";
+import { useCoinStore, COIN_COSTS } from "@/store/coinStore";
 
 type Phase = "setup" | "shuffle" | "drawing" | "revealing" | "reading" | "chat";
 
@@ -119,24 +119,10 @@ function TarotMarkdown({ text, streaming }: { text: string; streaming: boolean }
   return <div className="flex flex-col gap-0.5">{nodes}</div>;
 }
 
-function ReadingCostLabel({ count }: { count: number }) {
-  const { freeReadsToday } = useCoinStore();
-  const isFree = freeReadsToday < FREE_READS_PER_DAY;
-  const cost = count === 1 ? COIN_COSTS.read1 : count === 3 ? COIN_COSTS.read3 : COIN_COSTS.read5;
-
-  if (isFree) {
-    return (
-      <span className="text-sm font-body text-mint font-semibold">
-        Miễn phí hôm nay ({freeReadsToday}/{FREE_READS_PER_DAY} lượt) 🎁
-      </span>
-    );
-  }
-  if (cost === 0) {
-    return <span className="text-sm font-body text-purple-deep/60">Miễn phí 🆓</span>;
-  }
+function FreeLabel() {
   return (
-    <span className="text-sm font-body text-purple-deep/70">
-      Tốn {cost} xu 🪙
+    <span className="inline-flex items-center gap-1 text-sm font-body font-semibold text-emerald-600">
+      ✓ Rút bài & lật bài miễn phí
     </span>
   );
 }
@@ -144,7 +130,7 @@ function ReadingCostLabel({ count }: { count: number }) {
 function ReadingPageInner() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
-  const { coins, freeReadsToday, spendCoins, setFreeReads } = useCoinStore();
+  const { coins, spendCoins } = useCoinStore();
 
   // All hooks MUST be declared before any early returns (Rules of Hooks)
   const initialTheme = searchParams.get("theme") ?? "general";
@@ -178,43 +164,14 @@ function ReadingPageInner() {
     }
   }, [status]);
 
-  const isFreeRead = freeReadsToday < FREE_READS_PER_DAY;
-  const cost = selectedCount === 1 ? COIN_COSTS.read1 : selectedCount === 3 ? COIN_COSTS.read3 : COIN_COSTS.read5;
-  const canAfford = isFreeRead || cost === 0 || coins >= cost;
-
+  // Rút bài luôn miễn phí — không tốn xu, không giới hạn
   const handleDraw = useCallback(() => {
-    if (!canAfford) {
-      setShowPurchase(true);
-      return;
-    }
-
-    // Deduct cost or increment free read
-    if (isFreeRead) {
-      setFreeReads(freeReadsToday + 1);
-      if (session?.user?.id) {
-        fetch("/api/coins", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "free_read" }),
-        }).catch(() => {});
-      }
-    } else if (cost > 0) {
-      spendCoins(cost);
-      if (session?.user?.id) {
-        fetch("/api/coins", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "spend", amount: cost }),
-        }).catch(() => {});
-      }
-    }
-
     const drawn = getRandomCards(selectedCount);
     setCards(drawn);
     setRevealedCards(new Set());
     setReadingText("");
     setPhase("drawing");
-  }, [canAfford, isFreeRead, cost, selectedCount, session, spendCoins, freeReadsToday, setFreeReads]);
+  }, [selectedCount]);
 
   const handleCardReveal = useCallback((index: number) => {
     setRevealedCards((prev) => {
@@ -510,7 +467,7 @@ function ReadingPageInner() {
                   {selectedCount === 5 && "5 lá — đọc chi tiết nhất, không bỏ sót gì ✨"}
                 </p>
                 <div className="text-center mt-2">
-                  <ReadingCostLabel count={selectedCount} />
+                  <FreeLabel />
                 </div>
               </div>
 

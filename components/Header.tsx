@@ -8,7 +8,7 @@ import PurchaseModal from "@/components/PurchaseModal";
 
 export default function Header() {
   const { data: session, status } = useSession();
-  const { coins, setCoins, setFreeReads } = useCoinStore();
+  const { setCoins } = useCoinStore();
   const [showPurchase, setShowPurchase] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -18,7 +18,6 @@ export default function Header() {
         .then((r) => r.json())
         .then((data) => {
           if (data.coins !== undefined) {
-            // Nếu đây là user mới (coins = 20 và chưa từng thấy welcome)
             const isNew = data.coins === 20 && !localStorage.getItem("welcomed");
             if (isNew) {
               setShowWelcome(true);
@@ -27,11 +26,10 @@ export default function Header() {
             }
             setCoins(data.coins);
           }
-          if (data.freeReadsToday !== undefined) setFreeReads(data.freeReadsToday);
         })
         .catch(() => {});
     }
-  }, [status, setCoins, setFreeReads]);
+  }, [status, setCoins]);
 
   return (
     <>

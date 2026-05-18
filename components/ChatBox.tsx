@@ -139,8 +139,8 @@ export default function ChatBox({ cards, theme, initialReading }: ChatBoxProps) 
         <h3 className="font-display font-bold text-purple-deep text-lg">
           Hỏi thêm bestie! 💬
         </h3>
-        <p className="font-body text-purple-deep/60 text-xs mt-0.5">
-          Mỗi câu hỏi tốn {COIN_COSTS.chatMessage} xu 🪙
+        <p className="font-body text-purple-deep/60 text-sm mt-0.5">
+          Mỗi câu hỏi tốn <strong>{COIN_COSTS.chatMessage} xu</strong> 🪙 · Bạn còn <strong>{coins} xu</strong>
         </p>
       </div>
 
