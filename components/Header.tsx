@@ -8,15 +8,25 @@ import PurchaseModal from "@/components/PurchaseModal";
 
 export default function Header() {
   const { data: session, status } = useSession();
-  const { setCoins, setFreeReads } = useCoinStore();
+  const { coins, setCoins, setFreeReads } = useCoinStore();
   const [showPurchase, setShowPurchase] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
       fetch("/api/coins")
         .then((r) => r.json())
         .then((data) => {
-          if (data.coins !== undefined) setCoins(data.coins);
+          if (data.coins !== undefined) {
+            // Nếu đây là user mới (coins = 20 và chưa từng thấy welcome)
+            const isNew = data.coins === 20 && !localStorage.getItem("welcomed");
+            if (isNew) {
+              setShowWelcome(true);
+              localStorage.setItem("welcomed", "1");
+              setTimeout(() => setShowWelcome(false), 5000);
+            }
+            setCoins(data.coins);
+          }
           if (data.freeReadsToday !== undefined) setFreeReads(data.freeReadsToday);
         })
         .catch(() => {});
@@ -80,6 +90,27 @@ export default function Header() {
       </header>
 
       <PurchaseModal isOpen={showPurchase} onClose={() => setShowPurchase(false)} />
+
+      {/* Welcome bonus toast */}
+      {showWelcome && (
+        <div
+          style={{
+            position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+            background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+            color: "white", borderRadius: 16, padding: "12px 20px",
+            display: "flex", alignItems: "center", gap: 10,
+            boxShadow: "0 8px 32px rgba(124,58,237,0.35)",
+            zIndex: 100, whiteSpace: "nowrap", animation: "fadeIn 0.4s ease",
+          }}
+        >
+          <span style={{ fontSize: 22 }}>🎁</span>
+          <div>
+            <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>Chào mừng bestie! Tặng bạn 20 xu 🪙</p>
+            <p style={{ fontSize: 11, opacity: 0.85, margin: 0 }}>Dùng xu để xem bói và chat với AI nhé!</p>
+          </div>
+          <span style={{ fontSize: 20, marginLeft: 4 }}>✨</span>
+        </div>
+      )}
     </>
   );
 }

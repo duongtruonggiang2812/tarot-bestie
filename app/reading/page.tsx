@@ -15,6 +15,7 @@ import PurchaseModal from "@/components/PurchaseModal";
 import CoinBadge from "@/components/CoinBadge";
 import { TarotCard as TarotCardType, getRandomCards } from "@/data/tarotCards";
 import { useCoinStore, COIN_COSTS, FREE_READS_PER_DAY } from "@/store/coinStore";
+import LoginGate from "@/components/LoginGate";
 
 type Phase = "setup" | "shuffle" | "drawing" | "revealing" | "reading" | "chat";
 
@@ -52,7 +53,21 @@ function ReadingCostLabel({ count }: { count: number }) {
 
 function ReadingPageInner() {
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  // Login gate — chưa đăng nhập thì chặn
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-celestial flex items-center justify-center">
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="text-5xl">
+          🔮
+        </motion.div>
+      </div>
+    );
+  }
+  if (!session) {
+    return <LoginGate />;
+  }
   const { coins, freeReadsToday, spendCoins, setFreeReads } = useCoinStore();
 
   const initialTheme = searchParams.get("theme") ?? "general";
