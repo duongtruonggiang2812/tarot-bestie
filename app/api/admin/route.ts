@@ -3,7 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase());
+// Thêm email admin ở đây (hoặc dùng env var ADMIN_EMAILS)
+const HARDCODED_ADMINS = ["duongtruonggiang2812@gmail.com"];
+const ADMIN_EMAILS = [
+  ...HARDCODED_ADMINS,
+  ...(process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean),
+];
 
 function isAdmin(email?: string | null) {
   if (!email) return false;
