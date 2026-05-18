@@ -3,6 +3,7 @@
 import { Playfair_Display, Nunito } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+import InAppBrowserWarning from "@/components/InAppBrowserWarning";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -25,7 +26,10 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${playfair.variable} ${nunito.variable}`}>
       <body className="min-h-screen">
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <InAppBrowserWarning />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );
