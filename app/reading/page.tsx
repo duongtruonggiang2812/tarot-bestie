@@ -14,6 +14,7 @@ import ChatBox from "@/components/ChatBox";
 import PurchaseModal from "@/components/PurchaseModal";
 import CoinBadge from "@/components/CoinBadge";
 import { TarotCard as TarotCardType, getRandomCards } from "@/data/tarotCards";
+import { getCardImageUrl } from "@/lib/cardImage";
 import { useCoinStore, COIN_COSTS, FREE_READS_PER_DAY } from "@/store/coinStore";
 
 type Phase = "setup" | "shuffle" | "drawing" | "revealing" | "reading" | "chat";
@@ -35,17 +36,17 @@ function ReadingCostLabel({ count }: { count: number }) {
 
   if (isFree) {
     return (
-      <span className="text-xs font-body text-mint font-semibold">
-        Miễn phí hôm nay ({freeReadsToday}/{FREE_READS_PER_DAY}) 🎁
+      <span className="text-sm font-body text-mint font-semibold">
+        Miễn phí hôm nay ({freeReadsToday}/{FREE_READS_PER_DAY} lượt) 🎁
       </span>
     );
   }
   if (cost === 0) {
-    return <span className="text-xs font-body text-purple-deep/60">Miễn phí 🆓</span>;
+    return <span className="text-sm font-body text-purple-deep/60">Miễn phí 🆓</span>;
   }
   return (
-    <span className="text-xs font-body text-purple-deep/70">
-      Sẽ tốn {cost} xu 🪙
+    <span className="text-sm font-body text-purple-deep/70">
+      Tốn {cost} xu 🪙
     </span>
   );
 }
@@ -293,16 +294,16 @@ function ReadingPageInner() {
       <nav className="relative z-20 flex items-center justify-between px-4 pt-20 pb-4 max-w-5xl mx-auto">
         <Link href="/">
           <motion.button
-            className="flex items-center gap-2 text-purple-deep/70 font-body text-sm font-semibold"
+            className="flex items-center gap-2 text-purple-deep/70 font-body text-base font-semibold"
             whileHover={{ x: -3 }}
           >
-            ← Về trang chủ
+            ← Trang chủ
           </motion.button>
         </Link>
         <div className="flex items-center gap-3">
           {phase !== "setup" && (
             <motion.button
-              className="text-sm font-body text-purple-deep/60 font-semibold"
+              className="text-base font-body text-purple-deep/60 font-semibold"
               onClick={handleReset}
               whileHover={{ scale: 1.05 }}
             >
@@ -327,16 +328,16 @@ function ReadingPageInner() {
             >
               <div className="text-center">
                 <h1 className="font-display text-4xl sm:text-5xl font-bold text-purple-deep">
-                  Xem bói nào! ✨
+                  Hôm nay hỏi gì? 🔮
                 </h1>
-                <p className="font-body text-purple-deep/60 mt-2 text-sm">
-                  Chọn chủ đề và số lá bài, rồi để vũ trụ nói chuyện với bạn 🌙
+                <p className="font-body text-purple-deep/60 mt-3 text-base">
+                  Chọn chủ đề và số lá bài — vũ trụ sẽ trả lời ngay 🌙
                 </p>
               </div>
 
               {/* Theme */}
               <div className="w-full max-w-2xl">
-                <h2 className="font-display font-bold text-purple-deep text-lg mb-4 text-center">
+                <h2 className="font-display font-bold text-purple-deep text-xl mb-5 text-center">
                   Chủ đề hôm nay?
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -353,7 +354,7 @@ function ReadingPageInner() {
                       whileTap={{ scale: 0.95 }}
                     >
                       <span className="text-3xl">{t.emoji}</span>
-                      <span className="text-xs font-bold text-purple-deep">{t.name}</span>
+                      <span className="text-sm font-bold text-purple-deep">{t.name}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -361,15 +362,15 @@ function ReadingPageInner() {
 
               {/* Card count */}
               <div className="w-full max-w-md">
-                <h2 className="font-display font-bold text-purple-deep text-lg mb-4 text-center">
-                  Rút bao nhiêu lá?
+                <h2 className="font-display font-bold text-purple-deep text-xl mb-5 text-center">
+                  Rút mấy lá?
                 </h2>
                 <div className="flex justify-center gap-4">
                   {CARD_COUNTS.map((count) => (
                     <motion.button
                       key={count}
                       onClick={() => setSelectedCount(count)}
-                      className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center gap-1 border-2 transition-all font-body ${
+                      className={`w-24 h-24 rounded-2xl flex flex-col items-center justify-center gap-1 border-2 transition-all font-body ${
                         selectedCount === count
                           ? "border-purple-mid bg-lavender/60 shadow-lg"
                           : "border-white/50 glass hover:border-purple-mid/40"
@@ -377,19 +378,19 @@ function ReadingPageInner() {
                       whileHover={{ scale: 1.08, y: -3 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <span className="text-2xl font-display font-bold text-purple-deep">
+                      <span className="text-3xl font-display font-bold text-purple-deep">
                         {count}
                       </span>
-                      <span className="text-[10px] text-purple-deep/60 font-semibold">
-                        {count === 1 ? "lá" : "lá bài"}
+                      <span className="text-xs text-purple-deep/60 font-semibold">
+                        {count === 1 ? "lá bài" : "lá bài"}
                       </span>
                     </motion.button>
                   ))}
                 </div>
-                <p className="text-center text-xs font-body text-purple-deep/40 mt-3">
-                  {selectedCount === 1 && "Nhanh gọn, 1 lá bài chính 🎯"}
-                  {selectedCount === 3 && "Quá khứ - Hiện tại - Tương lai 🌙"}
-                  {selectedCount === 5 && "Trải bài đầy đủ, chi tiết nhất ✨"}
+                <p className="text-center text-sm font-body text-purple-deep/50 mt-4">
+                  {selectedCount === 1 && "1 lá — nhanh, gọn, thẳng vào vấn đề 🎯"}
+                  {selectedCount === 3 && "3 lá — Quá khứ · Hiện tại · Tương lai 🌙"}
+                  {selectedCount === 5 && "5 lá — đọc chi tiết nhất, không bỏ sót gì ✨"}
                 </p>
                 <div className="text-center mt-2">
                   <ReadingCostLabel count={selectedCount} />
@@ -398,7 +399,7 @@ function ReadingPageInner() {
 
               <motion.button
                 onClick={() => setPhase("shuffle")}
-                className="px-12 py-5 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-lg shadow-2xl"
+                className="px-14 py-5 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-xl shadow-2xl"
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.97 }}
                 animate={{
@@ -410,7 +411,7 @@ function ReadingPageInner() {
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                🎴 Tiếp tục
+                🎴 Xào bài thôi!
               </motion.button>
             </motion.div>
           )}
@@ -425,15 +426,15 @@ function ReadingPageInner() {
               className="flex flex-col items-center gap-8"
             >
               <div className="text-center">
-                <h2 className="font-display text-3xl font-bold text-purple-deep">
-                  Xào bài nào! 🎴
+                <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-deep">
+                  Tập trung vào câu hỏi 🧘
                 </h2>
-                <p className="font-body text-purple-deep/60 text-sm mt-1">
-                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá
+                <p className="font-body text-purple-deep/60 text-base mt-2">
+                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
                 </p>
-                <div className="mt-2">
-                  <ReadingCostLabel count={selectedCount} />
-                </div>
+                <p className="font-body text-purple-deep/50 text-sm mt-1">
+                  Xào xong thì bấm rút bài nhé!
+                </p>
               </div>
 
               <ShuffleDeck onDraw={handleDraw} />
@@ -449,12 +450,17 @@ function ReadingPageInner() {
               className="flex flex-col items-center gap-8"
             >
               <motion.div className="text-center" layout>
-                <h2 className="font-display text-2xl sm:text-3xl font-bold text-purple-deep">
-                  {allRevealed ? "Tất cả lá bài đã lộ diện! 🌟" : "Chạm vào từng lá để lật bài ✨"}
+                <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-deep">
+                  {allRevealed ? "Tất cả lá đã lộ diện! 🌟" : "Lật từng lá bài nhé ✨"}
                 </h2>
-                <p className="font-body text-purple-deep/60 text-sm mt-1">
+                <p className="font-body text-purple-deep/60 text-base mt-2">
                   {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
                 </p>
+                {!allRevealed && (
+                  <p className="font-body text-purple-deep/45 text-sm mt-1">
+                    Chạm vào lá bài để lật
+                  </p>
+                )}
               </motion.div>
 
               {/* Cards */}
@@ -476,14 +482,14 @@ function ReadingPageInner() {
                 {!allRevealed && (
                   <motion.button
                     onClick={handleRevealAll}
-                    className="px-8 py-3 rounded-full glass border border-purple-mid/40 text-purple-deep font-body font-bold text-sm"
+                    className="px-10 py-3.5 rounded-full glass border border-purple-mid/40 text-purple-deep font-body font-bold text-base"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1 }}
                   >
-                    Lật hết tất cả ✨
+                    Lật hết luôn ✨
                   </motion.button>
                 )}
 
@@ -493,12 +499,12 @@ function ReadingPageInner() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    <p className="font-body text-purple-deep/60 text-sm text-center">
-                      Sẵn sàng nghe bestie AI đọc bài chưa?
+                    <p className="font-body text-purple-deep/60 text-base text-center">
+                      Để AI bestie đọc bài cho nghe nhé? 🤖
                     </p>
                     <motion.button
                       onClick={handleGetReading}
-                      className="flex items-center gap-2 px-10 py-4 rounded-full bg-gradient-to-r from-purple-deep to-purple-mid text-white font-body font-bold shadow-xl"
+                      className="flex items-center gap-3 px-12 py-5 rounded-full bg-gradient-to-r from-purple-deep to-purple-mid text-white font-body font-bold text-lg shadow-xl"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.97 }}
                       animate={{
@@ -511,7 +517,7 @@ function ReadingPageInner() {
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
                       <span>🔮</span>
-                      <span>Đọc bài với AI ({COIN_COSTS.aiRead} xu)</span>
+                      <span>AI đọc bài cho mình</span>
                     </motion.button>
                   </motion.div>
                 )}
@@ -529,11 +535,11 @@ function ReadingPageInner() {
             >
               {/* Cards small view */}
               <motion.div className="text-center" layout>
-                <h2 className="font-display text-2xl font-bold text-purple-deep">
-                  {aiStreaming ? "Bestie đang đọc bài... 🔮" : "Kết quả xem bói 🌟"}
+                <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-deep">
+                  {aiStreaming ? "AI đang đọc bài... 🔮" : "Kết quả của bestie 🌟"}
                 </h2>
-                <p className="font-body text-purple-deep/60 text-sm mt-1">
-                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá
+                <p className="font-body text-purple-deep/60 text-base mt-2">
+                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
                 </p>
               </motion.div>
 
@@ -550,7 +556,7 @@ function ReadingPageInner() {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`/cards/${card.arcana === "major" ? `ar${String(card.id).padStart(2, "0")}` : `${card.suit === "wands" ? "wa" : card.suit === "cups" ? "cu" : card.suit === "swords" ? "sw" : "pe"}${String(card.number).padStart(2, "0")}`}.jpg`}
+                      src={getCardImageUrl(card)}
                       alt={card.nameVi}
                       className="w-full h-full object-cover"
                       style={card.isReversed ? { transform: "rotate(180deg)" } : {}}
@@ -571,16 +577,16 @@ function ReadingPageInner() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-3 mb-5">
                   <span className="text-2xl">🔮</span>
-                  <h3 className="font-display font-bold text-purple-deep text-lg">
-                    Luận giải của Bestie AI
+                  <h3 className="font-display font-bold text-purple-deep text-xl">
+                    Bestie AI nói gì?
                   </h3>
                 </div>
 
                 {aiStreaming && !readingText && (
-                  <div className="flex gap-2 items-center text-purple-deep/60">
-                    <span className="text-sm font-body">Đang phân tích bài tarot</span>
+                  <div className="flex gap-3 items-center text-purple-deep/60">
+                    <span className="text-base font-body">Đang đọc bài cho bạn</span>
                     <span className="inline-flex gap-1">
                       <span className="animate-bounce">●</span>
                       <span className="animate-bounce" style={{ animationDelay: "0.15s" }}>●</span>
@@ -590,7 +596,7 @@ function ReadingPageInner() {
                 )}
 
                 {readingText && (
-                  <div className="font-body text-purple-deep/90 text-sm leading-relaxed whitespace-pre-wrap">
+                  <div className="font-body text-purple-deep/90 text-base leading-relaxed whitespace-pre-wrap">
                     {readingText}
                     {aiStreaming && <span className="animate-pulse">▊</span>}
                   </div>
@@ -619,11 +625,11 @@ function ReadingPageInner() {
                 >
                   <motion.button
                     onClick={handleReset}
-                    className="px-6 py-3 rounded-full glass border border-purple-mid/30 text-purple-deep font-body font-bold text-sm"
+                    className="px-8 py-3.5 rounded-full glass border border-purple-mid/30 text-purple-deep font-body font-bold text-base"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    ↺ Xem lại từ đầu
+                    ↺ Đổi chủ đề
                   </motion.button>
                   <motion.button
                     onClick={() => {
@@ -632,11 +638,11 @@ function ReadingPageInner() {
                       setRevealedCards(new Set());
                       setReadingText("");
                     }}
-                    className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-sm shadow-lg"
+                    className="px-8 py-3.5 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-base shadow-lg"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    🃏 Rút bài mới
+                    🃏 Rút lại bài mới
                   </motion.button>
                 </motion.div>
               )}
