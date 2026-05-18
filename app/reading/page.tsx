@@ -151,6 +151,7 @@ function ReadingPageInner() {
   const [readingText, setReadingText] = useState("");
   const [aiStreaming, setAiStreaming] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [userQuestion, setUserQuestion] = useState("");
 
   // After OAuth redirect: restore saved cards so user doesn't need to re-shuffle
   useEffect(() => {
@@ -241,7 +242,7 @@ function ReadingPageInner() {
       const response = await fetch("/api/interpret", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cards, theme: selectedTheme }),
+        body: JSON.stringify({ cards, theme: selectedTheme, question: userQuestion }),
       });
 
       if (!response.body) throw new Error("No body");
@@ -514,6 +515,37 @@ function ReadingPageInner() {
                 </div>
               </div>
 
+              {/* Question input */}
+              <div className="w-full max-w-xl">
+                <h2 className="font-display font-bold text-purple-deep text-xl mb-3 text-center">
+                  Câu hỏi của bạn? <span className="text-purple-deep/40 text-base font-normal">(tuỳ chọn)</span>
+                </h2>
+                <div className="relative">
+                  <textarea
+                    value={userQuestion}
+                    onChange={(e) => setUserQuestion(e.target.value)}
+                    placeholder="VD: Tình cảm của mình và người đó sẽ đi về đâu? Mình có nên thay đổi công việc không?..."
+                    maxLength={200}
+                    rows={3}
+                    className="w-full rounded-2xl px-5 py-4 font-body text-base text-purple-deep placeholder-purple-deep/30 outline-none resize-none border-2 transition-all"
+                    style={{
+                      background: "rgba(255,255,255,0.6)",
+                      borderColor: userQuestion ? "rgba(167,139,250,0.6)" : "rgba(255,255,255,0.6)",
+                      backdropFilter: "blur(8px)",
+                    }}
+                  />
+                  <div className="absolute bottom-3 right-4 font-body text-xs text-purple-deep/30">
+                    {userQuestion.length}/200
+                  </div>
+                </div>
+                {userQuestion && (
+                  <motion.p className="text-center text-sm font-body text-purple-mid mt-2"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    ✨ AI sẽ đọc bài tập trung vào câu hỏi của bạn!
+                  </motion.p>
+                )}
+              </div>
+
               <motion.button
                 onClick={() => setPhase("shuffle")}
                 className="px-14 py-5 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-xl shadow-2xl"
@@ -562,14 +594,23 @@ function ReadingPageInner() {
               className="flex flex-col items-center gap-6 w-full">
 
               {/* Title */}
-              <div className="text-center">
+              <div className="text-center px-4">
                 <h2 className="font-display text-2xl sm:text-3xl font-bold"
                   style={{ color: "#e8d5a3", textShadow: "0 0 20px rgba(212,168,71,0.3)" }}>
                   Chọn {selectedCount} lá bài
                 </h2>
-                <p className="font-body text-sm mt-1" style={{ color: "rgba(232,213,163,0.5)" }}>
-                  Chọn {selectedCount} lá bài từ bộ bài phía dưới
-                </p>
+                {userQuestion ? (
+                  <div className="mt-2 mx-auto max-w-sm px-4 py-2 rounded-xl"
+                    style={{ background: "rgba(212,168,71,0.1)", border: "1px solid rgba(212,168,71,0.25)" }}>
+                    <p className="font-body text-sm italic" style={{ color: "rgba(232,213,163,0.8)" }}>
+                      ✦ &ldquo;{userQuestion}&rdquo;
+                    </p>
+                  </div>
+                ) : (
+                  <p className="font-body text-sm mt-1" style={{ color: "rgba(232,213,163,0.5)" }}>
+                    Chọn {selectedCount} lá bài từ bộ bài phía dưới
+                  </p>
+                )}
               </div>
 
               {/* SLOTS */}
@@ -791,7 +832,7 @@ function ReadingPageInner() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <ChatBox cards={cards} theme={selectedTheme} initialReading={readingText} />
+                  <ChatBox cards={cards} theme={selectedTheme} initialReading={readingText} question={userQuestion} />
                 </motion.div>
               )}
 

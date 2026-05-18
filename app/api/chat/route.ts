@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, cards, theme } = body;
+    const { messages, cards, theme, question } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Invalid messages" }), { status: 400 });
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = `Bạn là tarot reader AI thân thiết của Gen Z Việt Nam. Bạn đã đọc trải bài sau cho user:
 
-Chủ đề: ${theme || "Tổng quát"}
+Chủ đề: ${theme || "Tổng quát"}${question ? `\nCâu hỏi của người dùng: "${question}"` : ""}
 Các lá bài:
 ${cardContext || "Không có thông tin lá bài"}
 

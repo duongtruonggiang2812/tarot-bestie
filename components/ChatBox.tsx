@@ -15,6 +15,7 @@ interface ChatBoxProps {
   cards: TarotCard[];
   theme: string;
   initialReading: string;
+  question?: string;
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -24,7 +25,7 @@ const SUGGESTED_QUESTIONS = [
   "Lá nào quan trọng nhất? ⭐",
 ];
 
-export default function ChatBox({ cards, theme, initialReading }: ChatBoxProps) {
+export default function ChatBox({ cards, theme, initialReading, question }: ChatBoxProps) {
   const { data: session } = useSession();
   const { coins, spendCoins } = useCoinStore();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -75,6 +76,7 @@ export default function ChatBox({ cards, theme, initialReading }: ChatBoxProps) 
           messages: newMessages,
           cards,
           theme,
+          question,
           context: initialReading,
         }),
       });
