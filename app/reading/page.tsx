@@ -54,22 +54,9 @@ function ReadingCostLabel({ count }: { count: number }) {
 function ReadingPageInner() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
-
-  // Login gate — chưa đăng nhập thì chặn
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-celestial flex items-center justify-center">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="text-5xl">
-          🔮
-        </motion.div>
-      </div>
-    );
-  }
-  if (!session) {
-    return <LoginGate />;
-  }
   const { coins, freeReadsToday, spendCoins, setFreeReads } = useCoinStore();
 
+  // All hooks MUST be declared before any early returns (Rules of Hooks)
   const initialTheme = searchParams.get("theme") ?? "general";
 
   const [phase, setPhase] = useState<Phase>("setup");
@@ -218,6 +205,20 @@ function ReadingPageInner() {
     setRevealedCards(new Set());
     setReadingText("");
   };
+
+  // Early returns AFTER all hooks
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-celestial flex items-center justify-center">
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="text-5xl">
+          🔮
+        </motion.div>
+      </div>
+    );
+  }
+  if (!session) {
+    return <LoginGate />;
+  }
 
   const allRevealed = cards.length > 0 && revealedCards.size === cards.length;
   const themeInfo = THEMES.find((t) => t.id === selectedTheme);
