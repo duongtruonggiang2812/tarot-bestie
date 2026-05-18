@@ -23,10 +23,30 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       const admin = getSupabaseAdmin();
       if (admin && user.id && user.email) {
-        await admin.from("users").upsert(
-          { id: user.id, email: user.email, name: user.name, avatar: user.image },
-          { onConflict: "id", ignoreDuplicates: true }
-        );
+        // Check if user already exists
+        const { data: existing } = await admin
+          .from("users")
+          .select("id")
+          .eq("id", user.id)
+          .single();
+
+        if (!existing) {
+          // New user — tặng 10 xu chào mừng
+          await admin.from("users").insert({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            avatar: user.image,
+            coins: 10,
+          });
+        } else {
+          // Existing user — chỉ update profile, không đụng coins
+          await admin.from("users").update({
+            email: user.email,
+            name: user.name,
+            avatar: user.image,
+          }).eq("id", user.id);
+        }
       }
       return true;
     },

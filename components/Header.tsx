@@ -11,20 +11,34 @@ export default function Header() {
   const { setCoins } = useCoinStore();
   const [showPurchase, setShowPurchase] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showDailyBonus, setShowDailyBonus] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
+      // Lấy số xu hiện tại
       fetch("/api/coins")
         .then((r) => r.json())
         .then((data) => {
           if (data.coins !== undefined) {
-            const isNew = data.coins === 20 && !localStorage.getItem("welcomed");
+            const isNew = data.coins === 10 && !localStorage.getItem("welcomed");
             if (isNew) {
               setShowWelcome(true);
               localStorage.setItem("welcomed", "1");
               setTimeout(() => setShowWelcome(false), 5000);
             }
             setCoins(data.coins);
+          }
+        })
+        .catch(() => {});
+
+      // Điểm danh hàng ngày
+      fetch("/api/daily-bonus", { method: "POST" })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.bonus) {
+            setCoins(data.coins);
+            setShowDailyBonus(true);
+            setTimeout(() => setShowDailyBonus(false), 5000);
           }
         })
         .catch(() => {});
@@ -89,6 +103,27 @@ export default function Header() {
 
       <PurchaseModal isOpen={showPurchase} onClose={() => setShowPurchase(false)} />
 
+      {/* Daily bonus toast */}
+      {showDailyBonus && (
+        <div
+          style={{
+            position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+            background: "linear-gradient(135deg, #059669, #10b981)",
+            color: "white", borderRadius: 16, padding: "12px 20px",
+            display: "flex", alignItems: "center", gap: 10,
+            boxShadow: "0 8px 32px rgba(5,150,105,0.35)",
+            zIndex: 100, whiteSpace: "nowrap", animation: "fadeIn 0.4s ease",
+          }}
+        >
+          <span style={{ fontSize: 22 }}>📅</span>
+          <div>
+            <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>Điểm danh hôm nay! +3 xu 🪙</p>
+            <p style={{ fontSize: 11, opacity: 0.85, margin: 0 }}>Quay lại mỗi ngày để nhận thêm nhé!</p>
+          </div>
+          <span style={{ fontSize: 20, marginLeft: 4 }}>✨</span>
+        </div>
+      )}
+
       {/* Welcome bonus toast */}
       {showWelcome && (
         <div
@@ -103,7 +138,7 @@ export default function Header() {
         >
           <span style={{ fontSize: 22 }}>🎁</span>
           <div>
-            <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>Chào mừng bestie! Tặng bạn 20 xu 🪙</p>
+            <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>Chào mừng bestie! Tặng bạn 10 xu 🪙</p>
             <p style={{ fontSize: 11, opacity: 0.85, margin: 0 }}>Dùng xu để xem bói và chat với AI nhé!</p>
           </div>
           <span style={{ fontSize: 20, marginLeft: 4 }}>✨</span>

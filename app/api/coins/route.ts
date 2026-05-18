@@ -9,7 +9,7 @@ export async function GET() {
   if (!session?.user?.id) return NextResponse.json({ coins: 0 });
 
   const admin = getSupabaseAdmin();
-  if (!admin) return NextResponse.json({ coins: 20 });
+  if (!admin) return NextResponse.json({ coins: 0 });
 
   const { data } = await admin
     .from("users")
@@ -17,7 +17,7 @@ export async function GET() {
     .eq("id", session.user.id)
     .single();
 
-  return NextResponse.json({ coins: data?.coins ?? 20 });
+  return NextResponse.json({ coins: data?.coins ?? 0 });
 }
 
 // POST — tiêu xu (chỉ dùng cho aiRead và chatMessage)

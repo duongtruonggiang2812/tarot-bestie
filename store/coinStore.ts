@@ -22,13 +22,20 @@ export const useCoinStore = create<CoinState>((set, get) => ({
 // Costs — rút bài & lật bài LUÔN MIỄN PHÍ
 // Chỉ tốn xu khi nhận phân tích AI hoặc chat hỏi thêm
 export const COIN_COSTS = {
-  aiRead: 2,      // AI đọc bài chi tiết
   chatMessage: 1, // Mỗi tin nhắn chat hỏi thêm
 } as const;
 
+// Chi phí AI đọc bài theo số lá
+export function getAiReadCost(cardCount: number): number {
+  if (cardCount === 1) return 2;  // 1 lá → 2 xu
+  if (cardCount === 3) return 4;  // 3 lá → 4 xu
+  return 6;                        // 5 lá → 6 xu
+}
+
 // Coin packages
 export const COIN_PACKAGES = [
-  { id: "starter", name: "Starter", coins: 50,  price: "9.000đ",  emoji: "🥉", popular: false },
-  { id: "popular", name: "Popular", coins: 150, price: "19.000đ", emoji: "🥈", popular: true  },
-  { id: "pro",     name: "Pro",     coins: 500, price: "49.000đ", emoji: "🥇", popular: false },
+  { id: "starter", name: "✨ Thử",    coins: 30,  price: "19.000đ", popular: false },
+  { id: "popular", name: "🔮 Phổ biến", coins: 100, price: "59.000đ", popular: true  },
+  { id: "bestie",  name: "💜 Bestie", coins: 250, price: "129.000đ", popular: false },
+  { id: "vip",     name: "👑 VIP",    coins: 600, price: "269.000đ", popular: false },
 ];

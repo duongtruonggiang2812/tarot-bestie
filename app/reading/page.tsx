@@ -15,7 +15,7 @@ import PurchaseModal from "@/components/PurchaseModal";
 import CoinBadge from "@/components/CoinBadge";
 import { TarotCard as TarotCardType, getRandomCards } from "@/data/tarotCards";
 import { getCardImageUrl } from "@/lib/cardImage";
-import { useCoinStore, COIN_COSTS } from "@/store/coinStore";
+import { useCoinStore, COIN_COSTS, getAiReadCost } from "@/store/coinStore";
 
 type Phase = "setup" | "shuffle" | "drawing" | "revealing" | "reading" | "chat";
 
@@ -202,18 +202,19 @@ function ReadingPageInner() {
       setShowLoginPrompt(true);
       return;
     }
-    // Check coins for AI reading
-    if (coins < COIN_COSTS.aiRead) {
+    // Check coins for AI reading (giá theo số lá)
+    const aiCost = getAiReadCost(selectedCount);
+    if (coins < aiCost) {
       setShowPurchase(true);
       return;
     }
 
-    spendCoins(COIN_COSTS.aiRead);
+    spendCoins(aiCost);
     if (session?.user?.id) {
       fetch("/api/coins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "spend", amount: COIN_COSTS.aiRead }),
+        body: JSON.stringify({ action: "spend", amount: aiCost }),
       }).catch(() => {});
     }
 
@@ -466,8 +467,11 @@ function ReadingPageInner() {
                   {selectedCount === 3 && "3 lá — Quá khứ · Hiện tại · Tương lai 🌙"}
                   {selectedCount === 5 && "5 lá — đọc chi tiết nhất, không bỏ sót gì ✨"}
                 </p>
-                <div className="text-center mt-2">
+                <div className="text-center mt-2 flex flex-col items-center gap-1">
                   <FreeLabel />
+                  <span className="text-xs font-body text-purple-deep/40">
+                    AI đọc bài tốn <strong className="text-purple-deep/60">{getAiReadCost(selectedCount)} xu</strong> · Chat hỏi thêm tốn <strong className="text-purple-deep/60">1 xu/tin</strong>
+                  </span>
                 </div>
               </div>
 
@@ -592,6 +596,7 @@ function ReadingPageInner() {
                     >
                       <span>🔮</span>
                       <span>AI đọc bài cho mình</span>
+                      <span className="text-sm font-normal opacity-80">· {getAiReadCost(selectedCount)} xu</span>
                     </motion.button>
                   </motion.div>
                 )}
