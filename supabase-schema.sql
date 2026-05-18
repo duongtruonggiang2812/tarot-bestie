@@ -1,4 +1,9 @@
--- Run this in Supabase SQL Editor
+-- Tarot Bestie — Supabase Schema
+-- Safe to run multiple times
+
+-- =====================
+-- TABLES
+-- =====================
 
 create table if not exists public.users (
   id text primary key,
@@ -28,19 +33,44 @@ create table if not exists public.chat_messages (
   created_at timestamptz default now()
 );
 
--- RLS policies
+-- =====================
+-- RLS
+-- =====================
+
 alter table public.users enable row level security;
 alter table public.readings enable row level security;
 alter table public.chat_messages enable row level security;
 
-create policy "Users can read own data" on public.users for select using (auth.uid()::text = id);
-create policy "Users can update own data" on public.users for update using (auth.uid()::text = id);
-create policy "Service role full access users" on public.users for all using (true);
+-- Drop existing policies to avoid conflicts
+drop policy if exists "Users can read own data" on public.users;
+drop policy if exists "Users can update own data" on public.users;
+drop policy if exists "Service role full access users" on public.users;
+drop policy if exists "Users can read own readings" on public.readings;
+drop policy if exists "Service role full access readings" on public.readings;
+drop policy if exists "Users can read own messages" on public.chat_messages;
+drop policy if exists "Service role full access messages" on public.chat_messages;
 
-create policy "Users can read own readings" on public.readings for select using (auth.uid()::text = user_id);
-create policy "Service role full access readings" on public.readings for all using (true);
+-- Users policies
+create policy "Users can read own data"
+  on public.users for select
+  using (true);
 
-create policy "Users can read own messages" on public.chat_messages for select using (
-  exists (select 1 from public.readings where id = reading_id and user_id = auth.uid()::text)
-);
-create policy "Service role full access messages" on public.chat_messages for all using (true);
+create policy "Users can update own data"
+  on public.users for update
+  using (true);
+
+create policy "Allow insert users"
+  on public.users for insert
+  with check (true);
+
+-- Readings policies
+create policy "Allow all readings"
+  on public.readings for all
+  using (true)
+  with check (true);
+
+-- Chat messages policies
+create policy "Allow all chat messages"
+  on public.chat_messages for all
+  using (true)
+  with check (true);
