@@ -221,7 +221,7 @@ function ReadingPageInner() {
       <PurchaseModal isOpen={showPurchase} onClose={() => setShowPurchase(false)} />
       <CardModal card={zoomedCard} onClose={() => setZoomedCard(null)} />
 
-      {/* Login prompt modal — shown only when unauthenticated user tries AI reading */}
+      {/* Login prompt modal */}
       <AnimatePresence>
         {showLoginPrompt && (
           <motion.div
@@ -230,26 +230,46 @@ function ReadingPageInner() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowLoginPrompt(false)} />
+            {/* Dark overlay */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setShowLoginPrompt(false)}
+            />
+            {/* Card */}
             <motion.div
-              className="relative glass rounded-3xl p-8 max-w-sm w-full text-center flex flex-col items-center gap-5 shadow-2xl border border-purple-mid/30"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
+              className="relative rounded-3xl p-8 max-w-sm w-full text-center flex flex-col items-center gap-5 shadow-2xl"
+              style={{ background: "linear-gradient(160deg, #fff 0%, #f3e8ff 100%)" }}
+              initial={{ scale: 0.92, y: 24, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.92, y: 24, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
             >
-              <div className="text-5xl">🤖</div>
-              <div>
-                <h3 className="font-display text-xl font-bold text-purple-deep">Đăng nhập để nhận AI đọc bài</h3>
-                <p className="font-body text-purple-deep/65 text-sm mt-2 leading-relaxed">
-                  Bài đã trải xong rồi — đăng nhập để AI bestie phân tích chi tiết cho bạn và lưu lại lịch sử xem bói nhé ✨
+              {/* Close */}
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-purple-deep/30 hover:text-purple-deep/70 hover:bg-purple-deep/10 transition-colors text-lg"
+              >
+                ✕
+              </button>
+
+              <div className="text-5xl mt-1">🔮</div>
+
+              <div className="flex flex-col gap-1">
+                <h3 className="font-display text-xl font-bold text-purple-deep">
+                  Đăng nhập để AI đọc bài
+                </h3>
+                <p className="font-body text-purple-deep/60 text-sm leading-relaxed">
+                  Bài đã trải xong rồi!<br />
+                  Đăng nhập để AI bestie phân tích chi tiết và lưu lịch sử xem bói nhé ✨
                 </p>
               </div>
+
               <button
                 onClick={() => signIn("google")}
-                className="w-full py-3 px-6 rounded-2xl font-body font-bold text-white text-sm flex items-center justify-center gap-3 shadow-lg"
-                style={{ background: "linear-gradient(135deg,#7c3aed,#a855f7)" }}
+                className="w-full py-3.5 px-6 rounded-2xl font-body font-bold text-white text-sm flex items-center justify-center gap-3 shadow-lg hover:opacity-90 transition-opacity"
+                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)" }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -257,7 +277,11 @@ function ReadingPageInner() {
                 </svg>
                 Đăng nhập bằng Google
               </button>
-              <button onClick={() => setShowLoginPrompt(false)} className="text-xs font-body text-purple-deep/40 hover:text-purple-deep/70 transition-colors">
+
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="text-xs font-body text-purple-deep/35 hover:text-purple-deep/60 transition-colors"
+              >
                 Để sau
               </button>
             </motion.div>
