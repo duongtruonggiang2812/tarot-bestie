@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ParticleEffect from "@/components/ParticleEffect";
+import Header from "@/components/Header";
+import HistoryPanel from "@/components/HistoryPanel";
 
 const FEATURES = [
   { icon: "🃏", title: "78 lá bài tarot", desc: "Đầy đủ Major & Minor Arcana" },
-  { icon: "🤖", title: "AI đọc bài", desc: "Claude AI giải nghĩa tiếng Việt Gen Z" },
+  { icon: "🤖", title: "AI đọc bài", desc: "DeepSeek AI giải nghĩa tiếng Việt Gen Z" },
   { icon: "🎯", title: "4 chủ đề", desc: "Tình yêu, sự nghiệp, tài chính, bản thân" },
-  { icon: "📸", title: "Chia sẻ ngay", desc: "Lưu ảnh kết quả để share Story" },
+  { icon: "💬", title: "Chat với bestie", desc: "Hỏi AI về lá bài bất kỳ lúc nào" },
 ];
 
 const THEMES = [
@@ -19,12 +22,16 @@ const THEMES = [
 ];
 
 export default function HomePage() {
+  const [historyOpen, setHistoryOpen] = useState(false);
+
   return (
     <main className="relative min-h-screen bg-celestial overflow-hidden">
       <ParticleEffect />
+      <Header />
+      <HistoryPanel isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
 
       {/* Hero Section */}
-      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-16 text-center">
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-16 text-center pt-28">
         {/* Floating orbs */}
         <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-lavender/40 blur-2xl pointer-events-none" />
         <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-rose/40 blur-2xl pointer-events-none" />
@@ -87,15 +94,14 @@ export default function HomePage() {
                 🃏 Rút bài ngay
               </motion.button>
             </Link>
-            <Link href="/reading?quick=true">
-              <motion.button
-                className="px-8 py-4 rounded-full glass border border-purple-mid/40 text-purple-deep font-body font-bold text-base shadow-md hover:shadow-lg transition-shadow"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                ⚡ Rút nhanh 1 lá
-              </motion.button>
-            </Link>
+            <motion.button
+              onClick={() => setHistoryOpen(true)}
+              className="px-8 py-4 rounded-full glass border border-purple-mid/40 text-purple-deep font-body font-bold text-base shadow-md hover:shadow-lg transition-shadow"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              📖 Lịch sử bói
+            </motion.button>
           </motion.div>
         </motion.div>
 
