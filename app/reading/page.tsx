@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback, useEffect } from "react";
+import React, { Suspense, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
@@ -28,6 +28,96 @@ const THEMES = [
 ];
 
 const CARD_COUNTS = [1, 3, 5];
+
+// ── Inline markdown → styled JSX ──────────────────────────────────────────────
+function parseInline(text: string, key: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let idx = 0;
+
+  while (remaining.length > 0) {
+    const boldIdx = remaining.indexOf("**");
+    const italicIdx = remaining.search(/(?<!\*)\*(?!\*)/);
+
+    if (boldIdx !== -1 && (italicIdx === -1 || boldIdx <= italicIdx)) {
+      const end = remaining.indexOf("**", boldIdx + 2);
+      if (end !== -1) {
+        if (boldIdx > 0) parts.push(remaining.slice(0, boldIdx));
+        parts.push(<strong key={`${key}-b${idx++}`} className="font-bold text-purple-deep">{remaining.slice(boldIdx + 2, end)}</strong>);
+        remaining = remaining.slice(end + 2);
+        continue;
+      }
+    }
+    if (italicIdx !== -1) {
+      const end = remaining.indexOf("*", italicIdx + 1);
+      if (end !== -1) {
+        if (italicIdx > 0) parts.push(remaining.slice(0, italicIdx));
+        parts.push(<em key={`${key}-i${idx++}`} className="italic text-purple-deep/75">{remaining.slice(italicIdx + 1, end)}</em>);
+        remaining = remaining.slice(end + 1);
+        continue;
+      }
+    }
+    parts.push(remaining);
+    break;
+  }
+  return parts.length === 1 ? parts[0] : <>{parts}</>;
+}
+
+function TarotMarkdown({ text, streaming }: { text: string; streaming: boolean }) {
+  const lines = text.split("\n");
+  const nodes: React.ReactNode[] = [];
+
+  lines.forEach((line, i) => {
+    const isLast = i === lines.length - 1;
+    const cursor = streaming && isLast ? <span key="cur" className="animate-pulse text-purple-mid font-bold">▊</span> : null;
+
+    if (line.trim() === "---") {
+      nodes.push(<div key={i} className="my-5 border-t border-purple-mid/20" />);
+      return;
+    }
+    if (line.startsWith("### ")) {
+      nodes.push(
+        <div key={i} className="flex items-center gap-2 mt-6 mb-2">
+          <span className="w-1 h-5 rounded-full bg-gradient-to-b from-purple-deep to-purple-mid shrink-0" />
+          <h3 className="font-display font-bold text-purple-deep text-lg leading-snug">
+            {parseInline(line.slice(4), `h${i}`)}
+          </h3>
+        </div>
+      );
+      return;
+    }
+    if (line.startsWith("## ")) {
+      nodes.push(
+        <h2 key={i} className="font-display font-bold text-purple-deep text-xl mt-6 mb-2">
+          {parseInline(line.slice(3), `h2${i}`)}
+        </h2>
+      );
+      return;
+    }
+    if (line.startsWith("- ")) {
+      nodes.push(
+        <div key={i} className="flex items-start gap-2.5 my-1.5 ml-1">
+          <span className="mt-2 w-1.5 h-1.5 rounded-full bg-purple-mid shrink-0" />
+          <span className="font-body text-purple-deep/85 text-base leading-relaxed">
+            {parseInline(line.slice(2), `li${i}`)}{cursor}
+          </span>
+        </div>
+      );
+      return;
+    }
+    if (line.trim() === "") {
+      nodes.push(<div key={i} className="h-2" />);
+      return;
+    }
+    nodes.push(
+      <p key={i} className="font-body text-purple-deep/90 text-base leading-relaxed">
+        {parseInline(line, `p${i}`)}{cursor}
+      </p>
+    );
+  });
+
+  return <div className="flex flex-col gap-0.5">{nodes}</div>;
+}
 
 function ReadingCostLabel({ count }: { count: number }) {
   const { freeReadsToday } = useCoinStore();
@@ -187,8 +277,9 @@ function ReadingPageInner() {
       const decoder = new TextDecoder();
       let buffer = "";
       let fullText = "";
+      let streamDone = false;
 
-      while (true) {
+      while (!streamDone) {
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -198,8 +289,8 @@ function ReadingPageInner() {
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") break;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") { streamDone = true; break; }
             try {
               const parsed = JSON.parse(data);
               if (parsed.text) {
@@ -207,7 +298,7 @@ function ReadingPageInner() {
                 setReadingText(fullText);
               }
             } catch {
-              // ignore
+              // ignore partial chunks
             }
           }
         }
@@ -596,37 +687,57 @@ function ReadingPageInner() {
                 ))}
               </div>
 
-              {/* AI Reading text */}
+              {/* AI Reading — beautiful card */}
               <motion.div
-                className="w-full glass rounded-3xl border border-white/60 shadow-xl p-6"
+                className="w-full rounded-3xl shadow-xl overflow-hidden"
+                style={{ background: "linear-gradient(160deg, #fff 0%, #f5f0ff 100%)" }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <div className="flex items-center gap-3 mb-5">
-                  <span className="text-2xl">🔮</span>
-                  <h3 className="font-display font-bold text-purple-deep text-xl">
-                    Bestie AI nói gì?
-                  </h3>
+                {/* Header */}
+                <div
+                  className="flex items-center gap-3 px-6 py-4 border-b border-purple-mid/10"
+                  style={{ background: "linear-gradient(90deg,#7c3aed08,#a855f708)" }}
+                >
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg"
+                    style={{ background: "linear-gradient(135deg,#7c3aed,#a855f7)" }}>
+                    🔮
+                  </div>
+                  <div>
+                    <p className="font-display font-bold text-purple-deep text-lg leading-none">Bestie AI nói gì?</p>
+                    <p className="font-body text-purple-deep/45 text-xs mt-0.5">
+                      {themeInfo?.emoji} {themeInfo?.name} · {cards.length} lá bài
+                    </p>
+                  </div>
+                  {aiStreaming && (
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-purple-mid animate-bounce" />
+                      <span className="w-2 h-2 rounded-full bg-purple-mid animate-bounce" style={{ animationDelay: "0.15s" }} />
+                      <span className="w-2 h-2 rounded-full bg-purple-mid animate-bounce" style={{ animationDelay: "0.3s" }} />
+                    </div>
+                  )}
                 </div>
 
-                {aiStreaming && !readingText && (
-                  <div className="flex gap-3 items-center text-purple-deep/60">
-                    <span className="text-base font-body">Đang đọc bài cho bạn</span>
-                    <span className="inline-flex gap-1">
-                      <span className="animate-bounce">●</span>
-                      <span className="animate-bounce" style={{ animationDelay: "0.15s" }}>●</span>
-                      <span className="animate-bounce" style={{ animationDelay: "0.3s" }}>●</span>
-                    </span>
-                  </div>
-                )}
+                {/* Body */}
+                <div className="px-6 py-5">
+                  {aiStreaming && !readingText && (
+                    <div className="flex flex-col items-center gap-3 py-8 text-purple-deep/50">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="text-3xl"
+                      >
+                        🔮
+                      </motion.div>
+                      <p className="font-body text-sm">Đang đọc bài cho bạn...</p>
+                    </div>
+                  )}
 
-                {readingText && (
-                  <div className="font-body text-purple-deep/90 text-base leading-relaxed whitespace-pre-wrap">
-                    {readingText}
-                    {aiStreaming && <span className="animate-pulse">▊</span>}
-                  </div>
-                )}
+                  {readingText && (
+                    <TarotMarkdown text={readingText} streaming={aiStreaming} />
+                  )}
+                </div>
               </motion.div>
 
               {/* Chat box — shown after reading is done */}

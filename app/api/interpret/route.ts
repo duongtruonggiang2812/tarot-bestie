@@ -62,7 +62,7 @@ Hãy đọc và giải thích trải bài này cho mình nhé! Nhớ kết nối
         try {
           const response = await getDeepseekClient().chat.completions.create({
             model: "deepseek-chat",
-            max_tokens: 1500,
+            max_tokens: 3000,
             stream: true,
             messages: [
               { role: "system", content: SYSTEM_PROMPT },
