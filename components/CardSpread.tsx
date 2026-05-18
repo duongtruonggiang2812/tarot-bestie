@@ -1,84 +1,80 @@
 "use client";
 
-import { motion } from "framer-motion";
-import TarotCard from "./TarotCard";
-import { TarotCard as TarotCardType, spreadLayouts } from "@/data/tarotCards";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CardSpreadProps {
-  cards: TarotCardType[];
-  theme: keyof typeof spreadLayouts | "general";
-  onAllRevealed?: () => void;
-  revealAll?: boolean;
+  totalSlots: number;
+  pickedCount: number;
+  onPick: () => void;
 }
 
-export default function CardSpread({
-  cards,
-  theme,
-  onAllRevealed,
-  revealAll = false,
-}: CardSpreadProps) {
-  const layout =
-    theme !== "general" ? spreadLayouts[theme as keyof typeof spreadLayouts] : null;
+export default function CardSpread({ totalSlots, pickedCount, onPick }: CardSpreadProps) {
+  const [usedIndices, setUsedIndices] = useState<Set<number>>(new Set());
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const getPositionName = (index: number): string | undefined => {
-    if (!layout) return undefined;
-    return layout.positions[index];
+  const SPREAD_SIZE = 22;
+  const row1 = Array.from({ length: 11 }, (_, i) => i);
+  const row2 = Array.from({ length: 11 }, (_, i) => i + 11);
+
+  const handlePick = (index: number) => {
+    if (usedIndices.has(index) || pickedCount >= totalSlots) return;
+    setUsedIndices((prev) => new Set([...prev, index]));
+    onPick();
   };
 
-  const getSpreadClass = () => {
-    if (cards.length === 1) return "justify-center";
-    if (cards.length === 3) return "justify-center gap-4 sm:gap-6";
-    if (cards.length === 5) return "justify-center gap-3 sm:gap-4 flex-wrap";
-    return "justify-center gap-4 flex-wrap";
+  const CardBack = ({ index }: { index: number }) => {
+    const used = usedIndices.has(index);
+    const isHovered = hoveredIndex === index && !used && pickedCount < totalSlots;
+    const tilt = ((index % 5) - 2) * 0.7;
+
+    return (
+      <AnimatePresence>
+        {!used && (
+          <motion.div
+            key={index}
+            className="relative shrink-0 cursor-pointer"
+            style={{ width: 52, height: 84 }}
+            exit={{ opacity: 0, scale: 0.2, y: -50, transition: { duration: 0.4 } }}
+            animate={{ y: isHovered ? -18 : 0, rotate: tilt, scale: isHovered ? 1.12 : 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 22 }}
+            onHoverStart={() => setHoveredIndex(index)}
+            onHoverEnd={() => setHoveredIndex(null)}
+            onClick={() => handlePick(index)}
+          >
+            {isHovered && (
+              <div className="absolute inset-0 rounded-lg pointer-events-none z-10"
+                style={{ boxShadow: "0 0 18px rgba(212,168,71,0.9), 0 0 40px rgba(212,168,71,0.4)" }} />
+            )}
+            <div className="w-full h-full rounded-lg border overflow-hidden select-none"
+              style={{
+                background: "linear-gradient(160deg, #0d1b2e 0%, #162035 50%, #0a1220 100%)",
+                borderColor: isHovered ? "rgba(212,168,71,0.9)" : "rgba(180,140,60,0.3)",
+                borderWidth: isHovered ? 1.5 : 1,
+              }}>
+              <div className="absolute inset-[3px] rounded border border-amber-600/15 pointer-events-none" />
+              <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                <div className="text-amber-500/40" style={{ fontSize: 14 }}>☽</div>
+                <div className="flex gap-0.5">
+                  {["✦","·","✦"].map((s, i) => <span key={i} className="text-amber-500/25" style={{ fontSize: 7 }}>{s}</span>)}
+                </div>
+                <div className="text-amber-500/15" style={{ fontSize: 8 }}>✧</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
   };
 
   return (
-    <div className="w-full">
-      {layout && (
-        <motion.div
-          className="text-center mb-6"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <span className="text-2xl">{layout.emoji}</span>
-          <h3 className="font-display text-xl font-bold text-purple-deep mt-1">
-            {layout.name}
-          </h3>
-          <p className="text-sm font-body text-purple-deep/60 mt-1">
-            {cards.length} lá bài • Chạm vào từng lá để khám phá
-          </p>
-        </motion.div>
-      )}
-
-      <div className={`flex ${getSpreadClass()} items-start`}>
-        {cards.map((card, index) => (
-          <TarotCard
-            key={card.id}
-            card={card}
-            index={index}
-            isRevealed={revealAll}
-            position={getPositionName(index)}
-            onClick={() => {
-              // Check if this is the last card being revealed
-              // We use a timeout to allow state to settle
-              setTimeout(() => {
-                onAllRevealed?.();
-              }, 800);
-            }}
-          />
-        ))}
+    <div className="w-full flex flex-col gap-2">
+      <div className="flex justify-center gap-1.5 flex-wrap px-2">
+        {row1.map((i) => <CardBack key={i} index={i} />)}
       </div>
-
-      {revealAll && (
-        <motion.p
-          className="text-center text-sm font-body text-purple-deep/50 mt-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          ✨ Tất cả {cards.length} lá bài đã được lật
-        </motion.p>
-      )}
+      <div className="flex justify-center gap-1.5 flex-wrap px-2">
+        {row2.map((i) => <CardBack key={i} index={i} />)}
+      </div>
     </div>
   );
 }

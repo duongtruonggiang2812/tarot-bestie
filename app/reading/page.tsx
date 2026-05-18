@@ -8,6 +8,7 @@ import Link from "next/link";
 import ParticleEffect from "@/components/ParticleEffect";
 import Header from "@/components/Header";
 import ShuffleDeck from "@/components/ShuffleDeck";
+import CardSpread from "@/components/CardSpread";
 import TarotCard from "@/components/TarotCard";
 import CardModal from "@/components/CardModal";
 import ChatBox from "@/components/ChatBox";
@@ -27,6 +28,12 @@ const THEMES = [
 ];
 
 const CARD_COUNTS = [1, 3, 5];
+
+const SLOT_LABELS: Record<number, string[]> = {
+  1: ["Thông Điệp"],
+  3: ["Quá Khứ", "Hiện Tại", "Tương Lai"],
+  5: ["Tình Huống", "Thách Thức", "Quá Khứ", "Tương Lai", "Kết Quả"],
+};
 
 // ── Inline markdown → styled JSX ──────────────────────────────────────────────
 function parseInline(text: string, key: string): React.ReactNode {
@@ -172,6 +179,15 @@ function ReadingPageInner() {
     setPhase("drawing");
   }, [selectedCount]);
 
+  // User picks a card from the spread → reveals next slot
+  const handleCardPick = useCallback(() => {
+    setRevealedCards((prev) => {
+      const next = new Set(prev);
+      next.add(prev.size); // reveal next index
+      return next;
+    });
+  }, []);
+
   const handleCardReveal = useCallback((index: number) => {
     setRevealedCards((prev) => {
       const next = new Set(prev);
@@ -289,10 +305,33 @@ function ReadingPageInner() {
 
   const allRevealed = cards.length > 0 && revealedCards.size === cards.length;
   const themeInfo = THEMES.find((t) => t.id === selectedTheme);
+  const isDark = phase === "shuffle" || phase === "drawing";
 
   return (
-    <main className="relative min-h-screen bg-celestial overflow-hidden">
-      <ParticleEffect />
+    <main className={isDark ? "relative min-h-screen overflow-hidden" : "relative min-h-screen bg-celestial overflow-hidden"}
+      style={isDark ? { background: "#07090f" } : {}}
+    >
+      {!isDark && <ParticleEffect />}
+
+      {/* Dark starfield */}
+      {isDark && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <motion.div key={i} className="absolute rounded-full bg-white"
+              style={{
+                width: i % 5 === 0 ? 2 : 1,
+                height: i % 5 === 0 ? 2 : 1,
+                left: `${(i * 37 + 13) % 100}%`,
+                top: `${(i * 53 + 7) % 100}%`,
+                opacity: 0.1 + (i % 4) * 0.15,
+              }}
+              animate={{ opacity: [0.1 + (i % 4) * 0.1, 0.6, 0.1 + (i % 4) * 0.1] }}
+              transition={{ duration: 2 + (i % 3), repeat: Infinity, delay: i * 0.08 }}
+            />
+          ))}
+        </div>
+      )}
+
       <Header />
       <CardModal card={zoomedCard} onClose={() => setZoomedCard(null)} />
 
@@ -367,7 +406,8 @@ function ReadingPageInner() {
       <nav className="relative z-20 flex items-center justify-between px-4 pt-20 pb-4 max-w-5xl mx-auto">
         <Link href="/">
           <motion.button
-            className="flex items-center gap-2 text-purple-deep/70 font-body text-base font-semibold"
+            className="flex items-center gap-2 font-body text-base font-semibold"
+            style={{ color: isDark ? "rgba(232,213,163,0.6)" : undefined }}
             whileHover={{ x: -3 }}
           >
             ← Trang chủ
@@ -376,7 +416,8 @@ function ReadingPageInner() {
         <div className="flex items-center gap-3">
           {phase !== "setup" && (
             <motion.button
-              className="text-base font-body text-purple-deep/60 font-semibold"
+              className="text-base font-body font-semibold"
+              style={{ color: isDark ? "rgba(232,213,163,0.5)" : undefined }}
               onClick={handleReset}
               whileHover={{ scale: 1.05 }}
             >
@@ -502,103 +543,145 @@ function ReadingPageInner() {
               className="flex flex-col items-center gap-8"
             >
               <div className="text-center">
-                <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-deep">
-                  Tập trung vào câu hỏi 🧘
+                <h2 className="font-display text-3xl sm:text-4xl font-bold"
+                  style={{ color: "#e8d5a3", textShadow: "0 0 30px rgba(212,168,71,0.4)" }}>
+                  Tập trung vào câu hỏi
                 </h2>
-                <p className="font-body text-purple-deep/60 text-base mt-2">
+                <p className="font-body text-base mt-2" style={{ color: "rgba(232,213,163,0.6)" }}>
                   {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
-                </p>
-                <p className="font-body text-purple-deep/50 text-sm mt-1">
-                  Xào xong thì bấm rút bài nhé!
                 </p>
               </div>
 
-              <ShuffleDeck onDraw={handleDraw} />
+              <ShuffleDeck onDone={handleDraw} />
             </motion.div>
           )}
 
-          {/* PHASE 3 & 4: DRAWING + REVEALING */}
-          {(phase === "drawing" || phase === "revealing") && (
-            <motion.div
-              key="cards"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center gap-8"
-            >
-              <motion.div className="text-center" layout>
+          {/* PHASE 3: DRAWING — dark card picker */}
+          {phase === "drawing" && (
+            <motion.div key="drawing" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-6 w-full">
+
+              {/* Title */}
+              <div className="text-center">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold"
+                  style={{ color: "#e8d5a3", textShadow: "0 0 20px rgba(212,168,71,0.3)" }}>
+                  Chọn {selectedCount} lá bài
+                </h2>
+                <p className="font-body text-sm mt-1" style={{ color: "rgba(232,213,163,0.5)" }}>
+                  Chọn {selectedCount} lá bài từ bộ bài phía dưới
+                </p>
+              </div>
+
+              {/* SLOTS */}
+              <div className="flex justify-center gap-4 sm:gap-6 flex-wrap px-4">
+                {(SLOT_LABELS[selectedCount] ?? Array.from({ length: selectedCount }, (_, i) => `Lá ${i + 1}`)).map((label, i) => {
+                  const isRevealed = revealedCards.has(i);
+                  const card = cards[i];
+                  return (
+                    <motion.div key={i} className="flex flex-col items-center gap-2"
+                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}>
+                      <p className="font-body font-bold text-xs tracking-widest uppercase"
+                        style={{ color: isRevealed ? "rgba(212,168,71,0.9)" : "rgba(180,140,60,0.5)" }}>
+                        {label}
+                      </p>
+                      <div className="relative w-28 h-44 rounded-xl overflow-hidden"
+                        style={{
+                          border: isRevealed
+                            ? "1.5px solid rgba(212,168,71,0.7)"
+                            : "1.5px dashed rgba(180,140,60,0.35)",
+                          background: isRevealed ? "transparent" : "rgba(255,255,255,0.02)",
+                        }}>
+                        {isRevealed && card ? (
+                          <motion.div className="w-full h-full"
+                            initial={{ rotateY: 90, opacity: 0 }}
+                            animate={{ rotateY: 0, opacity: 1 }}
+                            transition={{ duration: 0.5 }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={getCardImageUrl(card)} alt={card.nameVi}
+                              className="w-full h-full object-cover"
+                              style={{ transform: card.isReversed ? "rotate(180deg)" : "none" }} />
+                            <div className="absolute bottom-0 inset-x-0 py-1.5 px-1 text-center"
+                              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)" }}>
+                              <p className="text-white font-body font-bold text-[10px]">{card.nameVi}</p>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="font-body text-2xl" style={{ color: "rgba(180,140,60,0.25)" }}>?</span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Progress */}
+              <p className="font-body text-sm" style={{ color: "rgba(212,168,71,0.6)" }}>
+                {revealedCards.size} / {selectedCount} lá đã chọn
+              </p>
+
+              {/* Card spread */}
+              {!allRevealed && (
+                <motion.div className="w-full" initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                  <CardSpread
+                    totalSlots={selectedCount}
+                    pickedCount={revealedCards.size}
+                    onPick={handleCardPick}
+                  />
+                </motion.div>
+              )}
+
+              {/* Done — show reading button */}
+              {allRevealed && (
+                <motion.div className="flex flex-col items-center gap-4 mt-2"
+                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+                  <p className="font-body text-base text-center" style={{ color: "rgba(232,213,163,0.7)" }}>
+                    Tất cả lá đã chọn ✦ Để AI đọc bài cho bạn nhé?
+                  </p>
+                  <motion.button onClick={handleGetReading}
+                    className="flex items-center gap-3 px-12 py-4 rounded-full font-body font-bold text-base"
+                    style={{ background: "linear-gradient(135deg, #d4a847, #f0c060, #b8860b)", color: "#1a0e00" }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    animate={{ boxShadow: ["0 0 20px rgba(212,168,71,0.3)", "0 0 40px rgba(212,168,71,0.6)", "0 0 20px rgba(212,168,71,0.3)"] }}
+                    transition={{ duration: 2, repeat: Infinity }}>
+                    ✦ AI đọc bài cho mình · {getAiReadCost(selectedCount)} xu
+                  </motion.button>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {/* PHASE 4: REVEALING (after OAuth redirect) */}
+          {phase === "revealing" && (
+            <motion.div key="revealing" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-8">
+              <div className="text-center">
                 <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-deep">
-                  {allRevealed ? "Tất cả lá đã lộ diện! 🌟" : "Lật từng lá bài nhé ✨"}
+                  Bài của bạn 🌟
                 </h2>
                 <p className="font-body text-purple-deep/60 text-base mt-2">
                   {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
                 </p>
-                {!allRevealed && (
-                  <p className="font-body text-purple-deep/45 text-sm mt-1">
-                    Chạm vào lá bài để lật
-                  </p>
-                )}
-              </motion.div>
-
-              {/* Cards */}
+              </div>
               <div className={`flex flex-wrap justify-center gap-4 sm:gap-6 ${cards.length === 5 ? "max-w-2xl" : ""}`}>
                 {cards.map((card, i) => (
-                  <TarotCard
-                    key={card.id}
-                    card={card}
-                    index={i}
-                    isRevealed={revealedCards.has(i)}
-                    onClick={() => handleCardReveal(i)}
-                    onZoom={(c) => setZoomedCard(c)}
-                  />
+                  <TarotCard key={card.id} card={card} index={i} isRevealed={true}
+                    onZoom={(c) => setZoomedCard(c)} />
                 ))}
               </div>
-
-              {/* Actions */}
-              <div className="flex flex-col items-center gap-4">
-                {!allRevealed && (
-                  <motion.button
-                    onClick={handleRevealAll}
-                    className="px-10 py-3.5 rounded-full glass border border-purple-mid/40 text-purple-deep font-body font-bold text-base"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.97 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 }}
-                  >
-                    Lật hết luôn ✨
-                  </motion.button>
-                )}
-
-                {allRevealed && (
-                  <motion.div
-                    className="flex flex-col items-center gap-3"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <p className="font-body text-purple-deep/60 text-base text-center">
-                      Để AI bestie đọc bài cho nghe nhé? 🤖
-                    </p>
-                    <motion.button
-                      onClick={handleGetReading}
-                      className="flex items-center gap-3 px-12 py-5 rounded-full bg-gradient-to-r from-purple-deep to-purple-mid text-white font-body font-bold text-lg shadow-xl"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.97 }}
-                      animate={{
-                        boxShadow: [
-                          "0 8px 30px rgba(123,79,166,0.3)",
-                          "0 8px 50px rgba(123,79,166,0.5)",
-                          "0 8px 30px rgba(123,79,166,0.3)",
-                        ],
-                      }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      <span>🔮</span>
-                      <span>AI đọc bài cho mình</span>
-                      <span className="text-sm font-normal opacity-80">· {getAiReadCost(selectedCount)} xu</span>
-                    </motion.button>
-                  </motion.div>
-                )}
-              </div>
+              <motion.button onClick={handleGetReading}
+                className="flex items-center gap-3 px-12 py-5 rounded-full bg-gradient-to-r from-purple-deep to-purple-mid text-white font-body font-bold text-lg shadow-xl"
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+                animate={{ boxShadow: ["0 8px 30px rgba(123,79,166,0.3)", "0 8px 50px rgba(123,79,166,0.5)", "0 8px 30px rgba(123,79,166,0.3)"] }}
+                transition={{ duration: 1.5, repeat: Infinity }}>
+                <span>🔮</span>
+                <span>AI đọc bài cho mình</span>
+                <span className="text-sm font-normal opacity-80">· {getAiReadCost(selectedCount)} xu</span>
+              </motion.button>
             </motion.div>
           )}
 
