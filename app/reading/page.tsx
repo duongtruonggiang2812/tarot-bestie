@@ -9,6 +9,7 @@ import ParticleEffect from "@/components/ParticleEffect";
 import Header from "@/components/Header";
 import ShuffleDeck from "@/components/ShuffleDeck";
 import CardSpread from "@/components/CardSpread";
+import BirthInfoModal, { getUserInfo, type UserInfo } from "@/components/BirthInfoModal";
 import TarotCard from "@/components/TarotCard";
 import CardModal from "@/components/CardModal";
 import ChatBox from "@/components/ChatBox";
@@ -152,6 +153,8 @@ function ReadingPageInner() {
   const [aiStreaming, setAiStreaming] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [userQuestion, setUserQuestion] = useState("");
+  const [showBirthModal, setShowBirthModal] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   // After OAuth redirect: restore saved cards so user doesn't need to re-shuffle
   useEffect(() => {
@@ -242,7 +245,15 @@ function ReadingPageInner() {
       const response = await fetch("/api/interpret", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cards, theme: selectedTheme, question: userQuestion }),
+        body: JSON.stringify({
+          cards,
+          theme: selectedTheme,
+          question: userQuestion,
+          userInfo: userInfo?.name || userInfo?.birthdate ? {
+            name: userInfo.name,
+            birthdate: userInfo.birthdate,
+          } : null,
+        }),
       });
 
       if (!response.body) throw new Error("No body");
@@ -312,6 +323,15 @@ function ReadingPageInner() {
     <main className={isDark ? "relative min-h-screen overflow-hidden" : "relative min-h-screen bg-celestial overflow-hidden"}
       style={isDark ? { background: "#07090f" } : {}}
     >
+      <BirthInfoModal
+        isOpen={showBirthModal}
+        onDone={(info) => {
+          setUserInfo(info);
+          setShowBirthModal(false);
+          setPhase("shuffle");
+        }}
+      />
+
       {!isDark && <ParticleEffect />}
 
       {/* Dark starfield */}
@@ -547,7 +567,15 @@ function ReadingPageInner() {
               </div>
 
               <motion.button
-                onClick={() => setPhase("shuffle")}
+                onClick={() => {
+                  const saved = getUserInfo();
+                  if (!saved) {
+                    setShowBirthModal(true);
+                  } else {
+                    setUserInfo(saved);
+                    setPhase("shuffle");
+                  }
+                }}
                 className="px-14 py-5 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-xl shadow-2xl"
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.97 }}
@@ -832,7 +860,7 @@ function ReadingPageInner() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <ChatBox cards={cards} theme={selectedTheme} initialReading={readingText} question={userQuestion} />
+                  <ChatBox cards={cards} theme={selectedTheme} initialReading={readingText} question={userQuestion} userInfo={userInfo} />
                 </motion.div>
               )}
 

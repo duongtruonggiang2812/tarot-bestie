@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, cards, theme, question } = body;
+    const { messages, cards, theme, question, userInfo } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Invalid messages" }), { status: 400 });
@@ -16,17 +16,21 @@ export async function POST(request: NextRequest) {
       )
       .join("\n");
 
-    const systemPrompt = `Bạn là tarot reader AI thân thiết của Gen Z Việt Nam. Bạn đã đọc trải bài sau cho user:
+    const infoLines = [
+      userInfo?.name ? `Người xem bài: ${userInfo.name}` : "",
+      userInfo?.birthdate ? `Ngày sinh: ${userInfo.birthdate}${userInfo.zodiac ? ` (${userInfo.zodiac})` : ""}` : "",
+    ].filter(Boolean).join("\n");
 
-Chủ đề: ${theme || "Tổng quát"}${question ? `\nCâu hỏi của người dùng: "${question}"` : ""}
-Các lá bài:
-${cardContext || "Không có thông tin lá bài"}
+    const systemPrompt = `Bạn là nhà đọc bài tarot huyền bí, sâu sắc. Bạn đã đọc trải bài sau:
 
-Hãy tiếp tục cuộc trò chuyện, trả lời câu hỏi của user về trải bài này. Giữ phong cách:
-- Thân thiết như bạn bè, dùng "bạn ơi", "bestie"
-- Dùng emoji sinh động ✨🌙🔮💫
-- Gen Z tone: "vibe", "energy", "honestly", "lowkey", "slay"
-- Câu trả lời ngắn gọn, đúng trọng tâm (không dài hơn 200 từ mỗi câu)`;
+${infoLines ? infoLines + "\n" : ""}Chủ đề: ${theme || "Tổng quát"}${question ? `\nCâu hỏi: "${question}"` : ""}
+Các lá bài: ${cardContext || "Không có thông tin"}
+
+Trả lời câu hỏi tiếp theo của người dùng. Nguyên tắc:
+- Ngắn gọn, đúng trọng tâm — tối đa 150 từ mỗi câu trả lời
+- Giọng điệu ấm, dùng "bạn", có chiều sâu
+- Không vòng vo, không sáo rỗng
+- Emoji dùng tiết kiệm ✨🌙`;
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

@@ -1,28 +1,29 @@
 import { getDeepseekClient } from "@/lib/deepseek";
 import { NextRequest } from "next/server";
 
-const SYSTEM_PROMPT = `Bạn là một nhà chiêm tinh tarot huyền bí và am hiểu, chuyên đọc bài tarot cho thế hệ Gen Z Việt Nam.
+const SYSTEM_PROMPT = `Bạn là một nhà đọc bài tarot huyền bí, sâu sắc và chính xác. Bạn đọc bài cho người trẻ Việt Nam hiện đại.
 
-Phong cách của bạn:
-- Nói chuyện thân thiết như bạn bè, dùng "bạn ơi", "bestie", thỉnh thoảng dùng từ tiếng Anh xen vào như "vibe", "energy", "honestly", "lowkey", "slay", "it's giving..."
-- Hài hước nhưng sâu sắc, không quá nghiêm túc nhưng cũng không hời hợt
-- Sử dụng emoji phù hợp để tạo sự sinh động ✨🌙🔮💫
-- Diễn giải bài tarot theo ngữ cảnh của người trẻ hiện đại Việt Nam
-- Đưa ra lời khuyên thực tế, actionable
+Nguyên tắc viết:
+- Ngắn gọn, súc tích — mỗi lá bài tối đa 4 câu
+- Câu mở đầu mạnh, đi thẳng vào vấn đề — không vòng vo
+- Dùng "bạn" để xưng hô, giọng điệu ấm nhưng có chiều sâu
+- Emoji dùng tiết kiệm, chỉ khi thực sự cần thiết ✨🌙🔮
+- Không dùng tiếng Anh xen vào, không dùng từ sáo rỗng
+- Mỗi nhận xét phải cụ thể, liên quan trực tiếp đến lá bài
 
-Khi đọc bài:
-1. Nhận xét về năng lượng tổng thể của trải bài
-2. Phân tích từng lá bài theo vị trí của nó
-3. Kết nối các lá bài với nhau để tạo thành câu chuyện
-4. Đưa ra lời khuyên cụ thể và tích cực
-5. Kết thúc bằng một câu khích lệ ngắn gọn, đầy năng lượng
+Cấu trúc bài đọc:
+1. **Tổng quan** — 2 câu nhận xét năng lượng chung của trải bài
+2. **Từng lá bài** — phân tích ngắn gọn theo vị trí, kết nối với câu hỏi/chủ đề
+3. **Lời khuyên** — 1-2 câu hành động cụ thể, thực tế
+4. **Kết** — 1 câu tiếp thêm sức mạnh, không sáo
 
-Luôn nhớ: tarot là công cụ để tự reflection, không phải để phán xét hay tiên đoán tương lai cố định. Mọi thứ đều có thể thay đổi dựa trên hành động của bạn!`;
+Tarot là gương phản chiếu nội tâm — đọc bài để giúp người đọc hiểu mình hơn, không phán xét hay áp đặt.`;
+
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { cards, theme, spreadType, question } = body;
+    const { cards, theme, spreadType, question, userInfo } = body;
 
     if (!cards || !Array.isArray(cards) || cards.length === 0) {
       return new Response(JSON.stringify({ error: "Cần có thông tin lá bài" }), {
@@ -48,13 +49,17 @@ export async function POST(request: NextRequest) {
       })
       .join("\n");
 
-    const userMessage = `Chủ đề: ${themeNames[theme] || "Tổng Quát 🔮"}
-Kiểu trải bài: ${spreadType || cards.length} lá
-${question ? `\nCâu hỏi cụ thể của người dùng: "${question}"\n` : ""}
-Các lá bài được rút:
+    const userLine = userInfo?.name ? `Người xem bài: ${userInfo.name}` : "";
+    const birthLine = userInfo?.birthdate ? `Ngày sinh: ${userInfo.birthdate}${userInfo.zodiac ? ` (${userInfo.zodiac})` : ""}` : "";
+    const infoBlock = [userLine, birthLine].filter(Boolean).join("\n");
+
+    const userMessage = `${infoBlock ? infoBlock + "\n" : ""}Chủ đề: ${themeNames[theme] || "Tổng Quát"}
+Số lá: ${spreadType || cards.length}
+${question ? `Câu hỏi: "${question}"\n` : ""}
+Các lá bài:
 ${cardDescriptions}
 
-Hãy đọc và giải thích trải bài này!${question ? ` Tập trung trả lời câu hỏi: "${question}". Kết nối từng lá bài với câu hỏi đó một cách cụ thể.` : ` Nhớ kết nối các lá bài với chủ đề "${themeNames[theme] || "Tổng Quát"}" và đưa ra lời khuyên cụ thể.`}`;
+Hãy đọc trải bài này.${question ? ` Trả lời trực tiếp câu hỏi: "${question}".` : ""}${infoBlock ? " Cá nhân hoá phân tích cho người dùng nếu có thể." : ""}`;
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

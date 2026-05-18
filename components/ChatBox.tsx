@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useCoinStore, COIN_COSTS } from "@/store/coinStore";
 import { TarotCard } from "@/data/tarotCards";
+import { type UserInfo } from "@/components/BirthInfoModal";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,6 +17,7 @@ interface ChatBoxProps {
   theme: string;
   initialReading: string;
   question?: string;
+  userInfo?: UserInfo | null;
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -25,7 +27,7 @@ const SUGGESTED_QUESTIONS = [
   "Lá nào quan trọng nhất? ⭐",
 ];
 
-export default function ChatBox({ cards, theme, initialReading, question }: ChatBoxProps) {
+export default function ChatBox({ cards, theme, initialReading, question, userInfo }: ChatBoxProps) {
   const { data: session } = useSession();
   const { coins, spendCoins } = useCoinStore();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -77,6 +79,7 @@ export default function ChatBox({ cards, theme, initialReading, question }: Chat
           cards,
           theme,
           question,
+          userInfo: userInfo?.name || userInfo?.birthdate ? userInfo : null,
           context: initialReading,
         }),
       });
