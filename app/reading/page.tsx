@@ -2,7 +2,7 @@
 
 import React, { Suspense, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import ParticleEffect from "@/components/ParticleEffect";
@@ -11,7 +11,6 @@ import ShuffleDeck from "@/components/ShuffleDeck";
 import TarotCard from "@/components/TarotCard";
 import CardModal from "@/components/CardModal";
 import ChatBox from "@/components/ChatBox";
-import PurchaseModal from "@/components/PurchaseModal";
 import CoinBadge from "@/components/CoinBadge";
 import { TarotCard as TarotCardType, getRandomCards } from "@/data/tarotCards";
 import { getCardImageUrl } from "@/lib/cardImage";
@@ -129,6 +128,7 @@ function FreeLabel() {
 
 function ReadingPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { data: session, status } = useSession();
   const { coins, spendCoins } = useCoinStore();
 
@@ -143,7 +143,6 @@ function ReadingPageInner() {
   const [zoomedCard, setZoomedCard] = useState<TarotCardType | null>(null);
   const [readingText, setReadingText] = useState("");
   const [aiStreaming, setAiStreaming] = useState(false);
-  const [showPurchase, setShowPurchase] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // After OAuth redirect: restore saved cards so user doesn't need to re-shuffle
@@ -205,7 +204,7 @@ function ReadingPageInner() {
     // Check coins for AI reading (giá theo số lá)
     const aiCost = getAiReadCost(selectedCount);
     if (coins < aiCost) {
-      setShowPurchase(true);
+      router.push("/coins");
       return;
     }
 
@@ -295,7 +294,6 @@ function ReadingPageInner() {
     <main className="relative min-h-screen bg-celestial overflow-hidden">
       <ParticleEffect />
       <Header />
-      <PurchaseModal isOpen={showPurchase} onClose={() => setShowPurchase(false)} />
       <CardModal card={zoomedCard} onClose={() => setZoomedCard(null)} />
 
       {/* Login prompt modal */}

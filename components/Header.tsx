@@ -4,12 +4,10 @@ import { useEffect, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useCoinStore } from "@/store/coinStore";
 import CoinBadge from "@/components/CoinBadge";
-import PurchaseModal from "@/components/PurchaseModal";
 
 export default function Header() {
   const { data: session, status } = useSession();
   const { setCoins } = useCoinStore();
-  const [showPurchase, setShowPurchase] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showDailyBonus, setShowDailyBonus] = useState(false);
 
@@ -100,8 +98,6 @@ export default function Header() {
           </div>
         </div>
       </header>
-
-      <PurchaseModal isOpen={showPurchase} onClose={() => setShowPurchase(false)} />
 
       {/* Daily bonus toast */}
       {showDailyBonus && (
