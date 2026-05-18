@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { useCoinStore, COIN_PACKAGES, getAiReadCost } from "@/store/coinStore";
+import { useCoinStore, COIN_PACKAGES } from "@/store/coinStore";
 import Link from "next/link";
 
 const HOW_IT_WORKS = [
