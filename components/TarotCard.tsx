@@ -134,34 +134,36 @@ export default function TarotCard({
 
             {/* Card Front */}
             <div
-              className="tarot-card-back absolute inset-0 rounded-2xl overflow-hidden shadow-xl"
+              className="tarot-card-back absolute inset-0 rounded-2xl shadow-xl"
               style={{
                 backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
                 transform: "rotateY(180deg)",
                 border: card.isReversed ? "2px solid #f9a8d4" : "2px solid rgba(167,139,250,0.4)",
-              }}
-            >
-              {/* Image wrapper — rotates for reversed cards */}
-              <div style={{
+                overflow: "hidden",
                 position: "absolute",
                 top: 0, left: 0, right: 0, bottom: 0,
-                transform: card.isReversed ? "rotate(180deg)" : "none",
-                transformOrigin: "50% 50%",
-              }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imageUrl}
-                  alt={card.nameVi}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              </div>
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt={card.nameVi}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                  transform: card.isReversed ? "rotate(180deg)" : "none",
+                }}
+              />
 
-              {/* Name overlay — always right-side up (sibling of rotating div) */}
+              {/* Name overlay — always right-side up */}
               <div style={{
                 position: "absolute",
                 bottom: 0, left: 0, right: 0,
                 background: "linear-gradient(to top, rgba(0,0,0,0.82), transparent)",
-                borderRadius: "0 0 16px 16px",
+                borderRadius: "0 0 14px 14px",
                 padding: "20px 8px 8px",
                 pointerEvents: "none",
               }}>
