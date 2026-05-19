@@ -55,9 +55,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Không thể tạo đơn hàng" }, { status: 500 });
   }
 
-  const bankId      = process.env.BANK_ID           ?? "MB";
-  const accountNo   = process.env.BANK_ACCOUNT_NO   ?? "0000000000";
-  const accountName = process.env.BANK_ACCOUNT_NAME ?? "TAROT BESTIE";
+  const bankId      = process.env.BANK_ID           ?? "VPB";
+  const accountNo   = process.env.BANK_ACCOUNT_NO   ?? "667899966";
+  const accountName = process.env.BANK_ACCOUNT_NAME ?? "DUONG TRUONG GIANG";
 
   // VietQR — QR chuẩn cho mọi ngân hàng Việt Nam
   const qrUrl =
