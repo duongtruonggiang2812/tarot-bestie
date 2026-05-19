@@ -35,10 +35,11 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   console.log("[sepay/webhook] Received:", JSON.stringify(body));
 
-  const { transferType, transferAmount, code } = body as {
+  const { transferType, transferAmount, code: rawCode, content } = body as {
     transferType: string;
     transferAmount: number;
-    code: string;
+    code: string | null;
+    content: string | null;
   };
 
   // 2. Chỉ xử lý giao dịch tiền VÀO
@@ -46,10 +47,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
-  // 3. Kiểm tra mã đơn hợp lệ (TAROT + 6 ký tự)
-  if (!code || !/^TAROT[A-Z0-9]{6}$/.test(code)) {
+  // 3. Tìm mã đơn: ưu tiên field "code" của SePay, fallback tự parse từ "content"
+  const code =
+    (rawCode && /^TAROT[A-Z0-9]{6}$/.test(rawCode) ? rawCode : null) ??
+    (content ?? "").toUpperCase().match(/TAROT[A-Z0-9]{6}/)?.[0] ??
+    null;
+
+  if (!code) {
+    console.log("[sepay/webhook] Không tìm thấy mã TAROT trong giao dịch, bỏ qua.");
     return NextResponse.json({ success: true }); // Không phải đơn của mình, bỏ qua
   }
+
+  console.log(`[sepay/webhook] Tìm thấy mã đơn: ${code}`);
 
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ success: false }, { status: 500 });
