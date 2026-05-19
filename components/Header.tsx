@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import Link from "next/link";
 import { useCoinStore } from "@/store/coinStore";
 import CoinBadge from "@/components/CoinBadge";
 
@@ -51,6 +52,18 @@ export default function Header() {
           <div className="font-display font-bold text-purple-deep text-lg">
             🔮 Tarot Bestie
           </div>
+
+          {/* Nav links */}
+          <nav className="hidden sm:flex items-center gap-1">
+            <Link href="/reading"
+              className="px-3 py-1.5 rounded-full font-body text-sm font-semibold text-purple-deep/70 hover:text-purple-deep hover:bg-purple-deep/5 transition-colors">
+              🔮 Xem bói
+            </Link>
+            <Link href="/blog"
+              className="px-3 py-1.5 rounded-full font-body text-sm font-semibold text-purple-deep/70 hover:text-purple-deep hover:bg-purple-deep/5 transition-colors">
+              📚 Blog
+            </Link>
+          </nav>
 
           {/* Right side */}
           <div className="flex items-center gap-3">

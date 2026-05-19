@@ -286,8 +286,15 @@ export default function HomePageClient() {
         </motion.div>
       </section>
 
-      <footer className="relative z-10 text-center py-6 text-sm font-body text-purple-deep/30">
-        Made with 💜 for Gen Z Vietnam • Tarot Bestie 2025
+      <footer className="relative z-10 text-center py-8 text-sm font-body text-purple-deep/30">
+        <div className="flex items-center justify-center gap-4 mb-3">
+          <Link href="/reading" className="hover:text-purple-deep/60 transition-colors">🔮 Xem bói</Link>
+          <span>·</span>
+          <Link href="/blog" className="hover:text-purple-deep/60 transition-colors">📚 Blog</Link>
+          <span>·</span>
+          <Link href="/coins" className="hover:text-purple-deep/60 transition-colors">🪙 Nạp xu</Link>
+        </div>
+        <p>Made with 💜 for Gen Z Vietnam • Tarot Bestie 2025</p>
       </footer>
     </main>
   );
