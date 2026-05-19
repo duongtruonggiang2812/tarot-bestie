@@ -23,7 +23,7 @@ function ReaderDetailModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <motion.div
         className="relative w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl"
@@ -33,43 +33,33 @@ function ReaderDetailModal({
         exit={{ y: 40, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        {/* Drag handle (mobile) */}
-        <div className="flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-purple-deep/20" />
+        <div className="flex justify-center pt-3 pb-0 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-purple-deep/15" />
         </div>
 
-        {/* Close (desktop) */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 hidden sm:flex w-7 h-7 rounded-full items-center justify-center text-sm text-purple-deep/30 hover:text-purple-deep/60 hover:bg-purple-deep/8 transition-colors"
+          className="absolute top-4 right-4 hidden sm:flex w-7 h-7 rounded-full items-center justify-center text-sm text-purple-deep/30 hover:text-purple-deep/60 transition-colors"
         >
           ✕
         </button>
 
-        {/* Content */}
-        <div className="px-6 pt-4 pb-6 flex flex-col gap-4">
+        <div className="px-6 pt-5 pb-7 flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-center gap-4">
             <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-md"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-lg"
               style={{ background: reader.avatarBg }}
             >
               {reader.emoji}
             </div>
             <div>
               <p className="font-display font-bold text-purple-deep text-lg leading-tight">{reader.name}</p>
-              <p className="font-body text-purple-deep/50 text-xs mt-0.5 italic">{reader.tagline}</p>
-              <div className="flex flex-wrap gap-1 mt-1.5">
+              <p className="font-body text-xs text-purple-deep/45 mt-0.5 italic">{reader.tagline}</p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
                 {reader.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-0.5 rounded-full font-body text-[10px] font-semibold"
-                    style={{
-                      background: `${reader.color}18`,
-                      color: reader.color,
-                      border: `1px solid ${reader.color}35`,
-                    }}
-                  >
+                  <span key={tag} className="px-2.5 py-0.5 rounded-full font-body text-[10px] font-semibold"
+                    style={{ background: `${reader.color}15`, color: reader.color, border: `1px solid ${reader.color}30` }}>
                     {tag}
                   </span>
                 ))}
@@ -77,52 +67,43 @@ function ReaderDetailModal({
             </div>
           </div>
 
-          {/* Divider */}
           <div className="h-px bg-purple-deep/8" />
 
           {/* Strengths */}
           <div>
-            <p className="font-body text-[11px] font-bold text-purple-deep/40 uppercase tracking-widest mb-2">Điểm mạnh</p>
+            <p className="font-body text-[11px] font-bold text-purple-deep/35 uppercase tracking-widest mb-2.5">Điểm mạnh</p>
             <div className="flex flex-col gap-2">
               {reader.strengths.map((s, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <span className="text-xs mt-0.5 shrink-0" style={{ color: reader.color }}>✦</span>
-                  <p className="font-body text-sm text-purple-deep/75 leading-relaxed">{s}</p>
+                  <p className="font-body text-sm text-purple-deep/70 leading-relaxed">{s}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Quote */}
-          <div
-            className="px-4 py-3 rounded-2xl"
-            style={{ background: `${reader.color}0f`, border: `1px solid ${reader.color}25` }}
-          >
-            <p className="font-body text-sm italic text-center text-purple-deep/60 leading-relaxed">
+          <div className="px-4 py-3 rounded-2xl"
+            style={{ background: `${reader.color}0d`, border: `1px solid ${reader.color}22` }}>
+            <p className="font-body text-sm italic text-center leading-relaxed" style={{ color: reader.color + "bb" }}>
               &ldquo;{reader.quote}&rdquo;
             </p>
           </div>
 
           {/* Specialties */}
           <div>
-            <p className="font-body text-[11px] font-bold text-purple-deep/40 uppercase tracking-widest mb-2">Chuyên đọc</p>
-            <div className="flex flex-col gap-1">
+            <p className="font-body text-[11px] font-bold text-purple-deep/35 uppercase tracking-widest mb-2.5">Chuyên đọc</p>
+            <div className="flex flex-col gap-1.5">
               {reader.specialties.map((s, i) => (
                 <p key={i} className="font-body text-sm text-purple-deep/55">· {s}</p>
               ))}
             </div>
           </div>
 
-          {/* CTA */}
           <motion.button
-            className="w-full py-3.5 rounded-2xl font-body font-bold text-sm mt-1"
-            style={
-              isSelected
-                ? { background: `linear-gradient(135deg, ${reader.color}, ${reader.color}bb)`, color: "#fff" }
-                : { background: "linear-gradient(135deg, #7c3aed, #a855f7)", color: "#fff" }
-            }
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
+            className="w-full py-3.5 rounded-2xl font-body font-bold text-sm text-white mt-1"
+            style={{ background: `linear-gradient(135deg, ${reader.color}, ${reader.color}cc)` }}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => { onSelect(); onClose(); }}
           >
             {isSelected ? `✓ Đang chọn ${reader.name}` : `Chọn ${reader.name} →`}
@@ -148,70 +129,95 @@ function ReaderCard({
   return (
     <motion.div
       onClick={onSelect}
-      className="relative rounded-2xl p-4 flex flex-col items-center gap-2.5 border-2 cursor-pointer transition-all"
+      className="relative flex items-center gap-4 rounded-2xl p-4 cursor-pointer overflow-hidden"
       style={{
-        background: isSelected ? `${reader.color}12` : "rgba(255,255,255,0.5)",
-        borderColor: isSelected ? reader.color : "rgba(255,255,255,0.6)",
-        backdropFilter: "blur(8px)",
-        boxShadow: isSelected ? `0 4px 20px ${reader.color}25` : "0 2px 12px rgba(0,0,0,0.06)",
+        background: isSelected ? `${reader.color}08` : "rgba(255,255,255,0.7)",
+        border: `2px solid ${isSelected ? reader.color + "cc" : "rgba(255,255,255,0.7)"}`,
+        backdropFilter: "blur(12px)",
+        boxShadow: isSelected
+          ? `0 4px 24px ${reader.color}20, 0 1px 8px rgba(0,0,0,0.04)`
+          : "0 2px 12px rgba(0,0,0,0.05)",
       }}
-      whileHover={{ scale: 1.03, y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: "spring", stiffness: 300, damping: 22 }}
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 24 }}
     >
+      {/* Avatar — app icon style */}
+      <div className="relative shrink-0">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-md"
+          style={{ background: reader.avatarBg }}
+        >
+          {reader.emoji}
+        </div>
+        {/* Floating sparkles around avatar */}
+        <span className="absolute -top-1 -right-1 text-[10px] opacity-60"
+          style={{ color: reader.color }}>✦</span>
+        <span className="absolute -bottom-0.5 -left-1 text-[8px] opacity-40"
+          style={{ color: reader.color }}>✦</span>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pr-6">
+        <p
+          className="font-display font-bold text-base leading-tight"
+          style={{ color: isSelected ? reader.color : "#3b1f6b" }}
+        >
+          {reader.name}
+        </p>
+
+        {/* Divider sparkle */}
+        <div className="flex items-center gap-1 my-1.5">
+          <span className="text-[10px]" style={{ color: reader.color + "80" }}>✦</span>
+        </div>
+
+        {/* Quote */}
+        <p
+          className="font-body text-xs italic leading-snug"
+          style={{ color: "rgba(59,31,107,0.5)" }}
+        >
+          &ldquo;{reader.quote}&rdquo;
+        </p>
+
+        {/* Tags */}
+        <div className="flex gap-1.5 mt-2.5">
+          {reader.tags.slice(0, 2).map((tag) => (
+            <span
+              key={tag}
+              className="px-2.5 py-1 rounded-full font-body text-[11px]"
+              style={{
+                background: isSelected ? `${reader.color}15` : "rgba(59,31,107,0.06)",
+                color: isSelected ? reader.color : "rgba(59,31,107,0.45)",
+                border: `1px solid ${isSelected ? reader.color + "30" : "transparent"}`,
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* Info button */}
       <button
         onClick={(e) => { e.stopPropagation(); onDetail(); }}
-        className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors"
-        style={{ color: "rgba(59,31,107,0.3)", background: "rgba(59,31,107,0.06)" }}
-        title="Xem chi tiết"
+        className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors"
+        style={{
+          background: isSelected ? `${reader.color}18` : "rgba(59,31,107,0.07)",
+          color: isSelected ? reader.color : "rgba(59,31,107,0.35)",
+          border: `1px solid ${isSelected ? reader.color + "30" : "rgba(59,31,107,0.1)"}`,
+        }}
       >
         i
       </button>
-
-      {/* Avatar */}
-      <div
-        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
-        style={{
-          background: reader.avatarBg,
-          boxShadow: isSelected ? `0 4px 14px ${reader.color}40` : undefined,
-        }}
-      >
-        {reader.emoji}
-      </div>
-
-      {/* Name */}
-      <p
-        className="font-display font-bold text-sm text-center leading-snug"
-        style={{ color: isSelected ? reader.color : "#3b1f6b" }}
-      >
-        {reader.name}
-      </p>
-
-      {/* Tags */}
-      <div className="flex flex-wrap justify-center gap-1">
-        {reader.tags.slice(0, 2).map((tag) => (
-          <span
-            key={tag}
-            className="px-2 py-0.5 rounded-full font-body text-[10px]"
-            style={{
-              background: isSelected ? `${reader.color}18` : "rgba(59,31,107,0.06)",
-              color: isSelected ? reader.color : "rgba(59,31,107,0.5)",
-            }}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
 
       {/* Selected checkmark */}
       <AnimatePresence>
         {isSelected && (
           <motion.div
-            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md"
-            style={{ background: reader.color }}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            className="absolute -top-0 -right-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md"
+            style={{ background: reader.color, top: -8, right: -8 }}
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
             exit={{ scale: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 18 }}
           >
@@ -236,7 +242,7 @@ export default function ReaderPicker({ selectedId, onChange }: { selectedId: str
         Mỗi reader có phong cách đọc bài riêng · Miễn phí ✨
       </p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {TAROT_READERS.map((reader) => (
           <ReaderCard
             key={reader.id}
