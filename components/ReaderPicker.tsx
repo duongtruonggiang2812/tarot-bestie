@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
 import { TAROT_READERS, type TarotReader } from "@/data/tarotReaders";
 
 interface ReaderPickerProps {
@@ -18,193 +17,109 @@ function ReaderCard({
   isSelected: boolean;
   onSelect: () => void;
 }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <motion.div
-      className="relative flex flex-col rounded-3xl overflow-hidden cursor-pointer select-none"
+      onClick={onSelect}
+      className="relative flex flex-col items-center rounded-2xl overflow-hidden cursor-pointer"
       style={{
-        background: "linear-gradient(160deg, #0e0818 0%, #160d2a 60%, #0a0612 100%)",
+        background: "linear-gradient(170deg, #120820 0%, #0d0618 100%)",
         border: isSelected
-          ? `1.5px solid ${reader.color}`
-          : "1.5px solid rgba(255,255,255,0.08)",
+          ? `1.5px solid ${reader.color}99`
+          : "1.5px solid rgba(255,255,255,0.07)",
         boxShadow: isSelected
-          ? `0 0 32px ${reader.color}40, 0 8px 40px rgba(0,0,0,0.6)`
-          : hovered
-          ? "0 8px 32px rgba(0,0,0,0.5)"
+          ? `0 0 28px ${reader.color}35, 0 8px 32px rgba(0,0,0,0.5)`
           : "0 4px 20px rgba(0,0,0,0.4)",
       }}
-      whileHover={{ y: -4, scale: 1.01 }}
+      whileHover={{ y: -3, scale: 1.015 }}
       whileTap={{ scale: 0.98 }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      onClick={onSelect}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
-      {/* Selected glow overlay */}
-      <AnimatePresence>
-        {isSelected && (
-          <motion.div
-            className="absolute inset-0 pointer-events-none rounded-3xl"
-            style={{ background: `radial-gradient(ellipse at 50% 0%, ${reader.color}18 0%, transparent 70%)` }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Top accent line */}
+      {/* Top glow line */}
       <div
-        className="h-0.5 w-full"
+        className="w-full h-0.5"
         style={{
           background: isSelected
-            ? `linear-gradient(90deg, transparent, ${reader.color}, transparent)`
+            ? `linear-gradient(90deg, transparent, ${reader.color}cc, transparent)`
             : "transparent",
         }}
       />
 
-      {/* Avatar section */}
-      <div className="flex flex-col items-center pt-6 pb-4 px-4">
-        {/* Avatar circle */}
-        <div className="relative">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-2xl"
-            style={{
-              background: reader.avatarBg,
-              border: isSelected
-                ? `2px solid ${reader.color}90`
-                : "2px solid rgba(255,255,255,0.12)",
-              boxShadow: isSelected ? `0 0 20px ${reader.color}60` : undefined,
-            }}
-          >
-            {reader.emoji}
-          </div>
-          {/* Selected badge */}
-          <AnimatePresence>
-            {isSelected && (
-              <motion.div
-                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: reader.color, border: "2px solid #0e0818" }}
-                initial={{ scale: 0, rotate: -45 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              >
-                ✓
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Name */}
-        <h3
-          className="font-display font-bold text-lg mt-3 text-center leading-tight"
+      {/* Avatar */}
+      <div className="pt-6 pb-3">
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center text-3xl relative"
           style={{
-            color: isSelected ? reader.color : "#d4a847",
-            textShadow: isSelected ? `0 0 20px ${reader.color}60` : "0 0 12px rgba(212,168,71,0.3)",
+            background: reader.avatarBg,
+            border: `2px solid ${isSelected ? reader.color + "80" : "rgba(255,255,255,0.1)"}`,
+            boxShadow: isSelected ? `0 0 18px ${reader.color}50` : undefined,
           }}
         >
-          {reader.name}
-        </h3>
-
-        {/* Experience */}
-        <p className="font-body text-xs mt-1" style={{ color: "rgba(212,168,71,0.5)" }}>
-          ★ {reader.experience}
-        </p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-          {reader.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2.5 py-0.5 rounded-full font-body text-[11px] font-semibold"
-              style={{
-                background: isSelected ? `${reader.color}22` : "rgba(255,255,255,0.06)",
-                color: isSelected ? reader.color : "rgba(212,168,71,0.7)",
-                border: `1px solid ${isSelected ? reader.color + "50" : "rgba(255,255,255,0.1)"}`,
-              }}
+          {reader.emoji}
+          {isSelected && (
+            <motion.div
+              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              style={{ background: reader.color, border: "2px solid #0d0618" }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 18 }}
             >
-              {tag}
-            </span>
-          ))}
+              ✓
+            </motion.div>
+          )}
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="mx-4 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+      {/* Name */}
+      <p
+        className="font-display font-bold text-base text-center px-3 leading-snug"
+        style={{ color: isSelected ? reader.color : "#d4a847" }}
+      >
+        {reader.name}
+      </p>
 
-      {/* Strengths */}
-      <div className="px-4 py-4 flex flex-col gap-2">
-        <p
-          className="font-body text-xs font-bold uppercase tracking-widest mb-1"
-          style={{ color: isSelected ? reader.color : "rgba(212,168,71,0.6)" }}
-        >
-          Điểm mạnh:
-        </p>
-        {reader.strengths.map((s, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <span style={{ color: isSelected ? reader.color : "rgba(212,168,71,0.5)" }} className="text-xs mt-0.5 shrink-0">✦</span>
-            <p className="font-body text-xs leading-relaxed" style={{ color: "rgba(220,210,240,0.7)" }}>
-              {s}
-            </p>
-          </div>
+      {/* Experience */}
+      <p className="font-body text-[11px] mt-1" style={{ color: "rgba(212,168,71,0.45)" }}>
+        ★ {reader.experience}
+      </p>
+
+      {/* Tags */}
+      <div className="flex flex-wrap justify-center gap-1.5 mt-3 px-3">
+        {reader.tags.map((tag) => (
+          <span
+            key={tag}
+            className="px-2 py-0.5 rounded-full font-body text-[10px] font-semibold"
+            style={{
+              background: isSelected ? `${reader.color}20` : "rgba(255,255,255,0.05)",
+              color: isSelected ? reader.color : "rgba(212,168,71,0.6)",
+              border: `1px solid ${isSelected ? reader.color + "45" : "rgba(255,255,255,0.08)"}`,
+            }}
+          >
+            {tag}
+          </span>
         ))}
       </div>
 
       {/* Quote */}
-      <div
-        className="mx-4 mb-4 px-3 py-2.5 rounded-xl"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-      >
-        <p className="font-body text-xs italic leading-relaxed" style={{ color: "rgba(220,210,240,0.5)" }}>
-          <span style={{ color: "rgba(212,168,71,0.4)" }}>&ldquo;&nbsp;</span>
-          {reader.quote}
-          <span style={{ color: "rgba(212,168,71,0.4)" }}>&nbsp;&rdquo;</span>
+      <div className="mx-4 mt-4 mb-4 px-3 py-2.5 rounded-xl w-[calc(100%-2rem)]"
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+        <p className="font-body text-[11px] italic text-center leading-relaxed"
+          style={{ color: "rgba(220,210,240,0.45)" }}>
+          &ldquo;{reader.quote}&rdquo;
         </p>
       </div>
 
-      {/* Divider */}
-      <div className="mx-4 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-
-      {/* Specialties */}
-      <div className="px-4 py-4 flex flex-col gap-2">
-        {reader.specialties.map((s, i) => (
-          <p key={i} className="font-body text-xs" style={{ color: "rgba(220,210,240,0.45)" }}>
-            {s}
-          </p>
-        ))}
-      </div>
-
-      {/* CTA Button */}
-      <div className="px-4 pb-5">
-        <motion.button
-          className="w-full py-3 rounded-2xl font-body font-bold text-sm flex items-center justify-center gap-2 transition-all"
+      {/* Button */}
+      <div className="px-4 pb-5 w-full">
+        <div
+          className="w-full py-2.5 rounded-xl font-body font-bold text-xs text-center"
           style={
             isSelected
-              ? {
-                  background: `linear-gradient(135deg, ${reader.color}, ${reader.color}cc)`,
-                  color: "#fff",
-                  boxShadow: `0 4px 20px ${reader.color}50`,
-                }
-              : {
-                  background: "linear-gradient(135deg, #d4a847, #b8860b)",
-                  color: "#1a0e00",
-                }
+              ? { background: `linear-gradient(135deg, ${reader.color}dd, ${reader.color}99)`, color: "#fff" }
+              : { background: "linear-gradient(135deg, #c49a2a, #a07818)", color: "#1a0e00" }
           }
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect();
-          }}
         >
-          {isSelected ? (
-            <>✓ Đã chọn reader này</>
-          ) : (
-            <>Chọn reader này →</>
-          )}
-        </motion.button>
+          {isSelected ? "✓ Đã chọn" : "Chọn reader này →"}
+        </div>
       </div>
     </motion.div>
   );
@@ -212,19 +127,15 @@ function ReaderCard({
 
 export default function ReaderPicker({ selectedId, onChange }: ReaderPickerProps) {
   return (
-    <div className="w-full max-w-4xl">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h2 className="font-display font-bold text-purple-deep text-xl">
-          Chọn reader của bạn
-        </h2>
-        <p className="font-body text-purple-deep/50 text-sm mt-1">
-          Mỗi reader có phong cách đọc bài khác nhau — hoàn toàn miễn phí ✨
-        </p>
-      </div>
+    <div className="w-full max-w-2xl">
+      <h2 className="font-display font-bold text-purple-deep text-xl mb-2 text-center">
+        Chọn reader của bạn
+      </h2>
+      <p className="font-body text-purple-deep/45 text-sm mb-6 text-center">
+        Mỗi reader có phong cách đọc bài riêng · Miễn phí ✨
+      </p>
 
-      {/* Cards grid — horizontal scroll on mobile */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 gap-3">
         {TAROT_READERS.map((reader) => (
           <ReaderCard
             key={reader.id}
@@ -235,24 +146,20 @@ export default function ReaderPicker({ selectedId, onChange }: ReaderPickerProps
         ))}
       </div>
 
-      {/* Selected reader hint */}
       <AnimatePresence>
         {selectedId && (
-          <motion.div
-            className="mt-4 text-center"
-            initial={{ opacity: 0, y: -6 }}
+          <motion.p
+            className="text-center font-body text-sm mt-4"
+            style={{ color: "rgba(100,60,160,0.55)" }}
+            initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
             {(() => {
               const r = TAROT_READERS.find((x) => x.id === selectedId);
-              return r ? (
-                <p className="font-body text-sm" style={{ color: "rgba(100,60,160,0.6)" }}>
-                  {r.emoji} <strong style={{ color: r.color }}>{r.name}</strong> sẽ đọc bài cho bạn — <em>{r.tagline}</em>
-                </p>
-              ) : null;
+              return r ? <><em>{r.emoji} {r.tagline}</em></> : null;
             })()}
-          </motion.div>
+          </motion.p>
         )}
       </AnimatePresence>
     </div>
