@@ -117,76 +117,89 @@ export default function PaymentModal({
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
-      {/* Backdrop — chỉ cho đóng khi đã xong */}
+      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={status !== "pending" ? onClose : undefined}
+        onClick={onClose}
       />
 
       <motion.div
-        className="relative w-full sm:max-w-[400px] rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl"
+        className="relative w-full sm:max-w-[380px] max-h-[92dvh] flex flex-col rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl"
         style={{ background: "linear-gradient(160deg,#fff 0%,#faf5ff 100%)" }}
         initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 40, opacity: 0 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
       >
-        {/* pill */}
-        <div className="flex justify-center pt-3 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-purple-deep/15" />
+        {/* pill — mobile only */}
+        <div className="flex justify-center pt-2.5 sm:hidden shrink-0">
+          <div className="w-8 h-1 rounded-full bg-purple-deep/15" />
         </div>
 
         <AnimatePresence mode="wait">
 
           {/* ── PENDING ───────────────────────────────────────────────────── */}
           {status === "pending" && (
-            <motion.div key="pending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="pending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="flex flex-col overflow-y-auto overscroll-contain">
 
               {/* Header */}
-              <div className="flex items-start justify-between px-5 pt-5 pb-3">
-                <div>
-                  <h3 className="font-display font-bold text-purple-deep text-lg leading-tight">
-                    Thanh toán {info.packageName}
-                  </h3>
-                  <p className="font-body text-purple-deep/50 text-sm mt-0.5">
-                    🪙 {info.coins} xu &nbsp;·&nbsp; {formatVND(info.amount)}
-                  </p>
+              <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Countdown chip */}
+                  <div className="flex flex-col items-center px-2.5 py-1.5 rounded-xl shrink-0"
+                    style={{ background: "rgba(124,58,237,0.07)" }}>
+                    <span className="font-display font-bold text-purple-deep text-base leading-none">{countdown}</span>
+                    <span className="font-body text-purple-deep/35 text-[9px] mt-0.5">còn lại</span>
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display font-bold text-purple-deep text-base leading-tight truncate">
+                      Thanh toán {info.packageName}
+                    </h3>
+                    <p className="font-body text-purple-deep/50 text-xs mt-0.5">
+                      🪙 {info.coins} xu &nbsp;·&nbsp; {formatVND(info.amount)}
+                    </p>
+                  </div>
                 </div>
-                {/* Countdown */}
-                <div className="flex flex-col items-center px-3 py-2 rounded-2xl shrink-0"
-                  style={{ background: "rgba(124,58,237,0.07)" }}>
-                  <span className="font-display font-bold text-purple-deep text-xl leading-none">{countdown}</span>
-                  <span className="font-body text-purple-deep/35 text-[10px] mt-0.5">còn lại</span>
-                </div>
+                {/* Close button */}
+                <button
+                  onClick={onClose}
+                  className="shrink-0 ml-2 w-7 h-7 flex items-center justify-center rounded-full hover:bg-purple-deep/8 transition-colors text-purple-deep/35 hover:text-purple-deep/70"
+                  aria-label="Đóng"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
               </div>
 
               {/* Step indicator */}
-              <div className="flex items-center justify-center gap-2 px-5 mb-3">
+              <div className="flex items-center justify-center gap-1.5 px-4 mb-2 shrink-0">
                 {["Quét QR", "Chuyển khoản", "Nhận xu"].map((s, i) => (
-                  <div key={s} className="flex items-center gap-2">
+                  <div key={s} className="flex items-center gap-1.5">
                     <div className="flex items-center gap-1">
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
                         style={{ background: "linear-gradient(135deg,#7c3aed,#a855f7)" }}>{i + 1}</div>
-                      <span className="font-body text-[11px] text-purple-deep/60">{s}</span>
+                      <span className="font-body text-[10px] text-purple-deep/55">{s}</span>
                     </div>
-                    {i < 2 && <span className="text-purple-deep/20 text-xs">›</span>}
+                    {i < 2 && <span className="text-purple-deep/20 text-[10px]">›</span>}
                   </div>
                 ))}
               </div>
 
-              {/* QR */}
-              <div className="flex justify-center px-5 mb-4">
-                <div className="rounded-2xl border-2 border-purple-mid/20 p-2 bg-white shadow-sm">
+              {/* QR — compact */}
+              <div className="flex justify-center px-4 mb-3 shrink-0">
+                <div className="rounded-xl border border-purple-mid/20 p-1.5 bg-white shadow-sm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={info.qrUrl} alt="QR" className="w-52 h-52 object-contain rounded-xl" />
+                  <img src={info.qrUrl} alt="QR" className="w-40 h-40 object-contain rounded-lg" />
                 </div>
               </div>
 
               {/* Bank info */}
-              <div className="mx-5 rounded-2xl overflow-hidden border border-purple-deep/8 mb-3"
+              <div className="mx-4 rounded-xl overflow-hidden border border-purple-deep/8 mb-2"
                 style={{ background: "rgba(124,58,237,0.03)" }}>
-                <div className="px-4 py-2 border-b border-purple-deep/6">
-                  <p className="font-body text-[11px] text-purple-deep/35 uppercase tracking-widest">Thông tin chuyển khoản</p>
+                <div className="px-3 py-1.5 border-b border-purple-deep/6">
+                  <p className="font-body text-[10px] text-purple-deep/35 uppercase tracking-widest">Thông tin chuyển khoản</p>
                 </div>
                 <CopyRow label="Ngân hàng"    value={info.bankId} />
                 <CopyRow label="Số tài khoản" value={info.accountNo} mono />
@@ -196,29 +209,39 @@ export default function PaymentModal({
               </div>
 
               {/* Warning */}
-              <div className="mx-5 mb-4 flex items-start gap-2 px-3 py-2.5 rounded-xl"
+              <div className="mx-4 mb-3 flex items-start gap-2 px-3 py-2 rounded-xl"
                 style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.18)" }}>
-                <span className="text-sm shrink-0">⚠️</span>
-                <p className="font-body text-xs text-amber-800/75 leading-relaxed">
+                <span className="text-xs shrink-0 mt-0.5">⚠️</span>
+                <p className="font-body text-[11px] text-amber-800/75 leading-relaxed">
                   Nhập <strong>đúng nội dung</strong>{" "}
-                  <span className="font-mono bg-amber-100 px-1.5 py-0.5 rounded text-amber-900">{info.orderCode}</span>
+                  <span className="font-mono bg-amber-100 px-1.5 py-0.5 rounded text-amber-900 text-[11px]">{info.orderCode}</span>
                   {" "}— hệ thống tự xác nhận sau 1–2 phút.
                 </p>
               </div>
 
               {/* Polling indicator */}
-              <div className="flex items-center justify-center gap-2 pb-5">
+              <div className="flex items-center justify-center gap-2 pb-4 shrink-0">
                 <motion.span className="w-1.5 h-1.5 rounded-full bg-purple-mid"
                   animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }} />
-                <p className="font-body text-xs text-purple-deep/35">Đang chờ xác nhận thanh toán...</p>
+                <p className="font-body text-[11px] text-purple-deep/35">Đang chờ xác nhận thanh toán...</p>
               </div>
             </motion.div>
           )}
 
           {/* ── SUCCESS ───────────────────────────────────────────────────── */}
           {status === "success" && (
-            <motion.div key="success" className="flex flex-col items-center gap-5 px-6 py-10 text-center"
+            <motion.div key="success" className="flex flex-col items-center gap-4 px-6 pt-4 pb-7 text-center"
               initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}>
+              {/* Close */}
+              <div className="w-full flex justify-end">
+                <button onClick={onClose}
+                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-purple-deep/8 transition-colors text-purple-deep/35 hover:text-purple-deep/70"
+                  aria-label="Đóng">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
               <motion.div
                 className="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-lg"
                 style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}
@@ -248,8 +271,18 @@ export default function PaymentModal({
 
           {/* ── EXPIRED ───────────────────────────────────────────────────── */}
           {(status === "expired" || status === "wrong_amount") && (
-            <motion.div key="expired" className="flex flex-col items-center gap-4 px-6 py-10 text-center"
+            <motion.div key="expired" className="flex flex-col items-center gap-4 px-6 pt-4 pb-7 text-center"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {/* Close */}
+              <div className="w-full flex justify-end">
+                <button onClick={onClose}
+                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-purple-deep/8 transition-colors text-purple-deep/35 hover:text-purple-deep/70"
+                  aria-label="Đóng">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
               <div className="text-5xl">{status === "expired" ? "⏰" : "❌"}</div>
               <h3 className="font-display font-bold text-purple-deep text-xl">
                 {status === "expired" ? "Đơn hàng đã hết hạn" : "Số tiền không khớp"}
