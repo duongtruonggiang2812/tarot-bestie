@@ -262,8 +262,8 @@ export default function HomePageClient() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Rút bài tarot miễn phí — AI bestie đọc cho nghe bằng tiếng Việt,
-            <strong className="text-purple-deep"> thẳng thắn không né tránh</strong> 💜
+            Câu trả lời đang ẩn trong 78 lá bài —
+            <strong className="text-purple-deep"> giải mã miễn phí, riêng cho bạn</strong> 🌙
           </motion.p>
 
           {/* CTAs */}
