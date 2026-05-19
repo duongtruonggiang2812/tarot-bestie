@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { COIN_PACKAGES } from "@/store/coinStore";
 
 function genOrderCode(): string {
@@ -37,7 +37,10 @@ export async function POST(req: NextRequest) {
   const orderCode = genOrderCode();
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-  const { error } = await supabase.from("transactions").insert({
+  const admin = getSupabaseAdmin();
+  if (!admin) return NextResponse.json({ error: "Lỗi cấu hình server" }, { status: 500 });
+
+  const { error } = await admin.from("transactions").insert({
     id:         orderCode,
     user_id:    session.user.id,
     package_id: packageId,

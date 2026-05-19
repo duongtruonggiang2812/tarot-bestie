@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -20,7 +20,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Thiếu orderCode" }, { status: 400 });
   }
 
-  const { data: txn } = await supabase
+  const admin = getSupabaseAdmin();
+  if (!admin) return NextResponse.json({ error: "Lỗi cấu hình server" }, { status: 500 });
+
+  const { data: txn } = await admin
     .from("transactions")
     .select("status, coins, expires_at")
     .eq("id", orderCode)
@@ -31,7 +34,7 @@ export async function GET(req: NextRequest) {
 
   // Tự động expire nếu quá 15 phút
   if (txn.status === "pending" && new Date(txn.expires_at) < new Date()) {
-    await supabase.from("transactions").update({ status: "expired" }).eq("id", orderCode);
+    await admin.from("transactions").update({ status: "expired" }).eq("id", orderCode);
     return NextResponse.json({ status: "expired" });
   }
 

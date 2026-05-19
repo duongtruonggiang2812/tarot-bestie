@@ -20,7 +20,7 @@
  * }
  */
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 const SEPAY_API_KEY = process.env.SEPAY_API_KEY ?? "";
 
@@ -51,8 +51,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true }); // Không phải đơn của mình, bỏ qua
   }
 
+  const admin = getSupabaseAdmin();
+  if (!admin) return NextResponse.json({ success: false }, { status: 500 });
+
   // 4. Tìm đơn hàng đang chờ
-  const { data: txn, error: findErr } = await supabase
+  const { data: txn, error: findErr } = await admin
     .from("transactions")
     .select("user_id, coins, amount_vnd")
     .eq("id", code)
@@ -67,12 +70,12 @@ export async function POST(req: NextRequest) {
   // 5. Kiểm tra số tiền (cho phép lệch ±1.000đ do phí ngân hàng)
   if (Math.abs(transferAmount - txn.amount_vnd) > 1000) {
     console.error(`[sepay/webhook] Số tiền không khớp: nhận ${transferAmount}, cần ${txn.amount_vnd}`);
-    await supabase.from("transactions").update({ status: "wrong_amount" }).eq("id", code);
+    await admin.from("transactions").update({ status: "wrong_amount" }).eq("id", code);
     return NextResponse.json({ success: true });
   }
 
   // 6. Đánh dấu thành công (dùng eq status=pending để đảm bảo idempotent)
-  const { error: updateErr } = await supabase
+  const { error: updateErr } = await admin
     .from("transactions")
     .update({ status: "success" })
     .eq("id", code)
@@ -84,7 +87,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 7. Cộng xu vào tài khoản user
-  const { error: rpcErr } = await supabase.rpc("add_coins", {
+  const { error: rpcErr } = await admin.rpc("add_coins", {
     p_user_id: txn.user_id,
     p_amount:  txn.coins,
   });
@@ -92,7 +95,7 @@ export async function POST(req: NextRequest) {
   if (rpcErr) {
     console.error("[sepay/webhook] add_coins error:", rpcErr);
     // Rollback status để có thể retry
-    await supabase.from("transactions").update({ status: "pending" }).eq("id", code);
+    await admin.from("transactions").update({ status: "pending" }).eq("id", code);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 
