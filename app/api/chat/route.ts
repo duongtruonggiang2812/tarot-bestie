@@ -18,9 +18,11 @@ export async function POST(request: NextRequest) {
       )
       .join("\n");
 
+    const genderMap: Record<string, string> = { male: "Nam", female: "Nữ", other: "Khác" };
     const infoLines = [
-      userInfo?.name ? `Người xem bài: ${userInfo.name}` : "",
+      userInfo?.name      ? `Người xem bài: ${userInfo.name}` : "",
       userInfo?.birthdate ? `Ngày sinh: ${userInfo.birthdate}${userInfo.zodiac ? ` (${userInfo.zodiac})` : ""}` : "",
+      userInfo?.gender    ? `Giới tính: ${genderMap[userInfo.gender] ?? userInfo.gender}` : "",
     ].filter(Boolean).join("\n");
 
     const systemPrompt = `${reader.chatPrompt}

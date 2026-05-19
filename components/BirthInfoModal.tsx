@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export interface UserInfo {
   name: string;
   birthdate: string; // "YYYY-MM-DD"
+  gender: "male" | "female" | "other" | "";
 }
 
 const STORAGE_KEY = "tarot-user-info";
@@ -24,24 +25,30 @@ export function saveUserInfo(info: UserInfo) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(info));
 }
 
+const GENDER_OPTIONS: { value: UserInfo["gender"]; label: string; emoji: string }[] = [
+  { value: "female", label: "Nữ",   emoji: "👩" },
+  { value: "male",   label: "Nam",  emoji: "👨" },
+  { value: "other",  label: "Khác", emoji: "🧑" },
+];
+
 interface Props {
   isOpen: boolean;
   onDone: (info: UserInfo | null) => void;
 }
 
 export default function BirthInfoModal({ isOpen, onDone }: Props) {
-  const [name, setName] = useState("");
+  const [name, setName]           = useState("");
   const [birthdate, setBirthdate] = useState("");
+  const [gender, setGender]       = useState<UserInfo["gender"]>("");
 
   const handleSubmit = () => {
-    const info: UserInfo = { name: name.trim(), birthdate };
+    const info: UserInfo = { name: name.trim(), birthdate, gender };
     saveUserInfo(info);
     onDone(info);
   };
 
   const handleSkip = () => {
-    // Lưu flag để không hỏi lại
-    saveUserInfo({ name: "", birthdate: "" });
+    saveUserInfo({ name: "", birthdate: "", gender: "" });
     onDone(null);
   };
 
@@ -71,7 +78,7 @@ export default function BirthInfoModal({ isOpen, onDone }: Props) {
                 Vũ trụ muốn biết thêm về bạn
               </h2>
               <p className="font-body text-purple-deep/60 text-sm mt-1.5 leading-relaxed">
-                Tên và ngày sinh giúp AI đọc bài chính xác và cá nhân hoá hơn cho bạn ✨
+                Tên, ngày sinh và giới tính giúp AI đọc bài chính xác và cá nhân hoá hơn cho bạn ✨
               </p>
             </div>
 
@@ -104,6 +111,30 @@ export default function BirthInfoModal({ isOpen, onDone }: Props) {
                   className="w-full rounded-xl px-4 py-3 font-body text-sm text-purple-deep outline-none border-2 transition-all bg-white/70"
                   style={{ borderColor: birthdate ? "rgba(167,139,250,0.7)" : "rgba(229,231,235,1)" }}
                 />
+              </div>
+
+              <div>
+                <label className="font-body text-xs font-bold text-purple-deep/60 uppercase tracking-wider mb-1.5 block">
+                  Giới tính
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {GENDER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setGender(opt.value)}
+                      className="flex flex-col items-center gap-1 py-3 rounded-xl border-2 font-body text-sm font-semibold transition-all"
+                      style={{
+                        borderColor: gender === opt.value ? "rgba(124,58,237,0.7)" : "rgba(229,231,235,1)",
+                        background: gender === opt.value ? "rgba(167,139,250,0.12)" : "rgba(255,255,255,0.7)",
+                        color: gender === opt.value ? "#7c3aed" : "rgba(107,114,128,1)",
+                      }}
+                    >
+                      <span className="text-xl">{opt.emoji}</span>
+                      <span>{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

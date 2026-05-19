@@ -253,9 +253,10 @@ function ReadingPageInner() {
           theme: selectedTheme,
           question: userQuestion,
           readerId: selectedReaderId,
-          userInfo: userInfo?.name || userInfo?.birthdate ? {
+          userInfo: userInfo?.name || userInfo?.birthdate || userInfo?.gender ? {
             name: userInfo.name,
             birthdate: userInfo.birthdate,
+            gender: userInfo.gender,
           } : null,
         }),
       });

@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
       })
       .join("\n");
 
-    const userLine = userInfo?.name ? `Người xem bài: ${userInfo.name}` : "";
-    const birthLine = userInfo?.birthdate ? `Ngày sinh: ${userInfo.birthdate}${userInfo.zodiac ? ` (${userInfo.zodiac})` : ""}` : "";
-    const infoBlock = [userLine, birthLine].filter(Boolean).join("\n");
+    const genderMap: Record<string, string> = { male: "Nam", female: "Nữ", other: "Khác" };
+    const userLine   = userInfo?.name      ? `Người xem bài: ${userInfo.name}` : "";
+    const birthLine  = userInfo?.birthdate ? `Ngày sinh: ${userInfo.birthdate}${userInfo.zodiac ? ` (${userInfo.zodiac})` : ""}` : "";
+    const genderLine = userInfo?.gender    ? `Giới tính: ${genderMap[userInfo.gender] ?? userInfo.gender}` : "";
+    const infoBlock  = [userLine, birthLine, genderLine].filter(Boolean).join("\n");
 
     const userMessage = `${infoBlock ? infoBlock + "\n" : ""}Chủ đề: ${themeNames[theme] || "Tổng Quát"}
 Số lá: ${spreadType || cards.length}
