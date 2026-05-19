@@ -1,29 +1,14 @@
 import { getDeepseekClient } from "@/lib/deepseek";
 import { NextRequest } from "next/server";
-
-const SYSTEM_PROMPT = `Bạn là một nhà đọc bài tarot huyền bí, sâu sắc và chính xác. Bạn đọc bài cho người trẻ Việt Nam hiện đại.
-
-Nguyên tắc viết:
-- Ngắn gọn, súc tích — mỗi lá bài tối đa 4 câu
-- Câu mở đầu mạnh, đi thẳng vào vấn đề — không vòng vo
-- Dùng "bạn" để xưng hô, giọng điệu ấm nhưng có chiều sâu
-- Emoji dùng tiết kiệm, chỉ khi thực sự cần thiết ✨🌙🔮
-- Không dùng tiếng Anh xen vào, không dùng từ sáo rỗng
-- Mỗi nhận xét phải cụ thể, liên quan trực tiếp đến lá bài
-
-Cấu trúc bài đọc:
-1. **Tổng quan** — 2 câu nhận xét năng lượng chung của trải bài
-2. **Từng lá bài** — phân tích ngắn gọn theo vị trí, kết nối với câu hỏi/chủ đề
-3. **Lời khuyên** — 1-2 câu hành động cụ thể, thực tế
-4. **Kết** — 1 câu tiếp thêm sức mạnh, không sáo
-
-Tarot là gương phản chiếu nội tâm — đọc bài để giúp người đọc hiểu mình hơn, không phán xét hay áp đặt.`;
+import { getReader } from "@/data/tarotReaders";
 
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { cards, theme, spreadType, question, userInfo } = body;
+    const { cards, theme, spreadType, question, userInfo, readerId } = body;
+    const reader = getReader(readerId ?? "mystic");
+    const SYSTEM_PROMPT = reader.interpretPrompt;
 
     if (!cards || !Array.isArray(cards) || cards.length === 0) {
       return new Response(JSON.stringify({ error: "Cần có thông tin lá bài" }), {

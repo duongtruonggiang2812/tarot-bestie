@@ -1,10 +1,12 @@
 import { getDeepseekClient } from "@/lib/deepseek";
 import { NextRequest } from "next/server";
+import { getReader } from "@/data/tarotReaders";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, cards, theme, question, userInfo } = body;
+    const { messages, cards, theme, question, userInfo, readerId } = body;
+    const reader = getReader(readerId ?? "mystic");
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Invalid messages" }), { status: 400 });
@@ -21,16 +23,13 @@ export async function POST(request: NextRequest) {
       userInfo?.birthdate ? `Ngày sinh: ${userInfo.birthdate}${userInfo.zodiac ? ` (${userInfo.zodiac})` : ""}` : "",
     ].filter(Boolean).join("\n");
 
-    const systemPrompt = `Bạn là nhà đọc bài tarot huyền bí, sâu sắc. Bạn đã đọc trải bài sau:
+    const systemPrompt = `${reader.chatPrompt}
 
+Bạn đã đọc trải bài sau:
 ${infoLines ? infoLines + "\n" : ""}Chủ đề: ${theme || "Tổng quát"}${question ? `\nCâu hỏi: "${question}"` : ""}
 Các lá bài: ${cardContext || "Không có thông tin"}
 
-Trả lời câu hỏi tiếp theo của người dùng. Nguyên tắc:
-- Ngắn gọn, đúng trọng tâm — tối đa 150 từ mỗi câu trả lời
-- Giọng điệu ấm, dùng "bạn", có chiều sâu
-- Không vòng vo, không sáo rỗng
-- Emoji dùng tiết kiệm ✨🌙`;
+Hãy tiếp tục trả lời câu hỏi của người dùng theo đúng phong cách và giọng điệu của bạn. Không vòng vo. Tối đa 120 từ.`;
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

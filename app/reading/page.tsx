@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import ShuffleDeck from "@/components/ShuffleDeck";
 import CardSpread from "@/components/CardSpread";
 import BirthInfoModal, { getUserInfo, type UserInfo } from "@/components/BirthInfoModal";
+import ReaderPicker from "@/components/ReaderPicker";
 import TarotCard from "@/components/TarotCard";
 import CardModal from "@/components/CardModal";
 import ChatBox from "@/components/ChatBox";
@@ -17,6 +18,7 @@ import CoinBadge from "@/components/CoinBadge";
 import { TarotCard as TarotCardType, getRandomCards } from "@/data/tarotCards";
 import { getCardImageUrl } from "@/lib/cardImage";
 import { useCoinStore, COIN_COSTS, getAiReadCost } from "@/store/coinStore";
+import { getReader } from "@/data/tarotReaders";
 
 type Phase = "setup" | "shuffle" | "drawing" | "revealing" | "reading" | "chat";
 
@@ -155,6 +157,7 @@ function ReadingPageInner() {
   const [userQuestion, setUserQuestion] = useState("");
   const [showBirthModal, setShowBirthModal] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [selectedReaderId, setSelectedReaderId] = useState("mystic");
 
   // After OAuth redirect: restore saved cards so user doesn't need to re-shuffle
   useEffect(() => {
@@ -249,6 +252,7 @@ function ReadingPageInner() {
           cards,
           theme: selectedTheme,
           question: userQuestion,
+          readerId: selectedReaderId,
           userInfo: userInfo?.name || userInfo?.birthdate ? {
             name: userInfo.name,
             birthdate: userInfo.birthdate,
@@ -318,6 +322,7 @@ function ReadingPageInner() {
   const allRevealed = cards.length > 0 && revealedCards.size === cards.length;
   const themeInfo = THEMES.find((t) => t.id === selectedTheme);
   const isDark = phase === "shuffle" || phase === "drawing";
+  const activeReader = getReader(selectedReaderId);
 
   return (
     <main className={isDark ? "relative min-h-screen overflow-hidden" : "relative min-h-screen bg-celestial overflow-hidden"}
@@ -535,6 +540,9 @@ function ReadingPageInner() {
                 </div>
               </div>
 
+              {/* Reader picker */}
+              <ReaderPicker selectedId={selectedReaderId} onChange={setSelectedReaderId} />
+
               {/* Question input */}
               <div className="w-full max-w-xl">
                 <h2 className="font-display font-bold text-purple-deep text-xl mb-3 text-center">
@@ -608,7 +616,7 @@ function ReadingPageInner() {
                   Tập trung vào câu hỏi
                 </h2>
                 <p className="font-body text-base mt-2" style={{ color: "rgba(232,213,163,0.6)" }}>
-                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
+                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá · {activeReader.emoji} {activeReader.name}
                 </p>
               </div>
 
@@ -812,12 +820,14 @@ function ReadingPageInner() {
                   className="flex items-center gap-3 px-6 py-4 border-b border-purple-mid/10"
                   style={{ background: "linear-gradient(90deg,#7c3aed08,#a855f708)" }}
                 >
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg"
-                    style={{ background: "linear-gradient(135deg,#7c3aed,#a855f7)" }}>
-                    🔮
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-lg"
+                    style={{ background: `linear-gradient(135deg, ${activeReader.color}, ${activeReader.color}99)` }}
+                  >
+                    {activeReader.emoji}
                   </div>
                   <div>
-                    <p className="font-display font-bold text-purple-deep text-lg leading-none">Bestie AI nói gì?</p>
+                    <p className="font-display font-bold text-purple-deep text-lg leading-none">{activeReader.name}</p>
                     <p className="font-body text-purple-deep/45 text-xs mt-0.5">
                       {themeInfo?.emoji} {themeInfo?.name} · {cards.length} lá bài
                     </p>
@@ -860,7 +870,7 @@ function ReadingPageInner() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <ChatBox cards={cards} theme={selectedTheme} initialReading={readingText} question={userQuestion} userInfo={userInfo} />
+                  <ChatBox cards={cards} theme={selectedTheme} initialReading={readingText} question={userQuestion} userInfo={userInfo} readerId={selectedReaderId} />
                 </motion.div>
               )}
 

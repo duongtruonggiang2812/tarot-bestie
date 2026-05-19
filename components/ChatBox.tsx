@@ -18,6 +18,7 @@ interface ChatBoxProps {
   initialReading: string;
   question?: string;
   userInfo?: UserInfo | null;
+  readerId?: string;
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -27,7 +28,7 @@ const SUGGESTED_QUESTIONS = [
   "Lá nào quan trọng nhất? ⭐",
 ];
 
-export default function ChatBox({ cards, theme, initialReading, question, userInfo }: ChatBoxProps) {
+export default function ChatBox({ cards, theme, initialReading, question, userInfo, readerId }: ChatBoxProps) {
   const { data: session } = useSession();
   const { coins, spendCoins } = useCoinStore();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -79,6 +80,7 @@ export default function ChatBox({ cards, theme, initialReading, question, userIn
           cards,
           theme,
           question,
+          readerId: readerId ?? "mystic",
           userInfo: userInfo?.name || userInfo?.birthdate ? userInfo : null,
           context: initialReading,
         }),
