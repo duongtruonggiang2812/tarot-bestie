@@ -1,79 +1,101 @@
+/**
+ * POST /api/payment/sepay/webhook
+ *
+ * SePay gọi endpoint này khi phát hiện giao dịch ngân hàng mới.
+ * SePay tự động trích xuất "code" từ nội dung chuyển khoản.
+ *
+ * Header: Authorization: Apikey <SEPAY_API_KEY>
+ *
+ * Payload mẫu từ SePay:
+ * {
+ *   "id": 12345,
+ *   "gateway": "MBBank",
+ *   "transactionDate": "2025-05-19 12:00:00",
+ *   "accountNumber": "0123456789",
+ *   "code": "TAROTABC123",          ← mã đơn được SePay tự extract
+ *   "content": "chuyen khoan TAROTABC123",
+ *   "transferType": "in",           ← "in" = tiền vào
+ *   "transferAmount": 80000,
+ *   "referenceCode": "FT25001..."
+ * }
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-// SePay sends: Authorization: Apikey YOUR_API_KEY
 const SEPAY_API_KEY = process.env.SEPAY_API_KEY ?? "";
 
 export async function POST(req: NextRequest) {
-  try {
-    // Verify SePay API key
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const incomingKey = authHeader.replace("Apikey ", "").trim();
+  // 1. Xác thực webhook từ SePay
+  const auth = req.headers.get("Authorization") ?? "";
+  if (SEPAY_API_KEY && auth !== `Apikey ${SEPAY_API_KEY}`) {
+    console.warn("[sepay/webhook] Unauthorized request");
+    return NextResponse.json({ success: false }, { status: 401 });
+  }
 
-    if (SEPAY_API_KEY && incomingKey !== SEPAY_API_KEY) {
-      console.error("[sepay/webhook] Invalid API key");
-      return NextResponse.json({ success: false }, { status: 401 });
-    }
+  const body = await req.json();
+  console.log("[sepay/webhook] Received:", JSON.stringify(body));
 
-    const body = await req.json();
-    console.log("[sepay/webhook]", body);
+  const { transferType, transferAmount, code } = body as {
+    transferType: string;
+    transferAmount: number;
+    code: string;
+  };
 
-    const {
-      transferType,   // "in" = incoming money
-      transferAmount, // amount in VND
-      content,        // transfer note
-    } = body;
-
-    // Only handle incoming transfers
-    if (transferType !== "in") {
-      return NextResponse.json({ success: true });
-    }
-
-    // Extract order code from transfer content (e.g. "TAROTABC123")
-    const match = (content as string)?.match(/TAROT[A-Z0-9]{6}/);
-    if (!match) {
-      return NextResponse.json({ success: true }); // Not our payment, ignore
-    }
-    const orderCode = match[0];
-
-    // Find pending transaction
-    const { data: txn } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("id", orderCode)
-      .eq("status", "pending")
-      .single();
-
-    if (!txn) {
-      return NextResponse.json({ success: true }); // Already processed or not found
-    }
-
-    // Verify amount matches (allow ±1000 tolerance for bank fees)
-    if (Math.abs(transferAmount - txn.amount_vnd) > 1000) {
-      console.error(`[sepay/webhook] Amount mismatch: got ${transferAmount}, expected ${txn.amount_vnd}`);
-      await supabase.from("transactions").update({ status: "amount_mismatch" }).eq("id", orderCode);
-      return NextResponse.json({ success: true });
-    }
-
-    // Mark transaction success
-    const { error: updateErr } = await supabase
-      .from("transactions")
-      .update({ status: "success" })
-      .eq("id", orderCode)
-      .eq("status", "pending"); // idempotency guard
-
-    if (updateErr) throw updateErr;
-
-    // Add coins to user
-    await supabase.rpc("add_coins", {
-      p_user_id: txn.user_id,
-      p_amount: txn.coins,
-    });
-
-    console.log(`[sepay/webhook] ✅ ${orderCode}: +${txn.coins} xu for user ${txn.user_id}`);
+  // 2. Chỉ xử lý giao dịch tiền VÀO
+  if (transferType !== "in") {
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("[sepay/webhook] Error:", err);
+  }
+
+  // 3. Kiểm tra mã đơn hợp lệ (TAROT + 6 ký tự)
+  if (!code || !/^TAROT[A-Z0-9]{6}$/.test(code)) {
+    return NextResponse.json({ success: true }); // Không phải đơn của mình, bỏ qua
+  }
+
+  // 4. Tìm đơn hàng đang chờ
+  const { data: txn, error: findErr } = await supabase
+    .from("transactions")
+    .select("user_id, coins, amount_vnd")
+    .eq("id", code)
+    .eq("status", "pending")
+    .single();
+
+  if (findErr || !txn) {
+    // Đơn không tồn tại hoặc đã xử lý rồi → vẫn trả 200 để SePay không retry
+    return NextResponse.json({ success: true });
+  }
+
+  // 5. Kiểm tra số tiền (cho phép lệch ±1.000đ do phí ngân hàng)
+  if (Math.abs(transferAmount - txn.amount_vnd) > 1000) {
+    console.error(`[sepay/webhook] Số tiền không khớp: nhận ${transferAmount}, cần ${txn.amount_vnd}`);
+    await supabase.from("transactions").update({ status: "wrong_amount" }).eq("id", code);
+    return NextResponse.json({ success: true });
+  }
+
+  // 6. Đánh dấu thành công (dùng eq status=pending để đảm bảo idempotent)
+  const { error: updateErr } = await supabase
+    .from("transactions")
+    .update({ status: "success" })
+    .eq("id", code)
+    .eq("status", "pending");
+
+  if (updateErr) {
+    console.error("[sepay/webhook] Update error:", updateErr);
     return NextResponse.json({ success: false }, { status: 500 });
   }
+
+  // 7. Cộng xu vào tài khoản user
+  const { error: rpcErr } = await supabase.rpc("add_coins", {
+    p_user_id: txn.user_id,
+    p_amount:  txn.coins,
+  });
+
+  if (rpcErr) {
+    console.error("[sepay/webhook] add_coins error:", rpcErr);
+    // Rollback status để có thể retry
+    await supabase.from("transactions").update({ status: "pending" }).eq("id", code);
+    return NextResponse.json({ success: false }, { status: 500 });
+  }
+
+  console.log(`[sepay/webhook] ✅ ${code}: +${txn.coins} xu → user ${txn.user_id}`);
+  return NextResponse.json({ success: true });
 }
