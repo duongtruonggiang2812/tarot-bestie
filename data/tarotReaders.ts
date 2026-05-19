@@ -2,7 +2,8 @@ export interface TarotReader {
   id: string;
   name: string;
   emoji: string;
-  avatarBg: string;      // gradient for avatar circle
+  avatarBg: string;      // gradient for avatar circle (fallback)
+  avatarImage?: string;  // path in /public/readers/
   experience: string;
   tags: string[];
   strengths: string[];
@@ -21,6 +22,7 @@ export const TAROT_READERS: TarotReader[] = [
     name: "Bà Đồng Huyền Bí",
     emoji: "🌙",
     avatarBg: "linear-gradient(135deg, #1a0533 0%, #4a1080 50%, #7c3aed 100%)",
+    avatarImage: "/readers/ba-dong.jpg",
     experience: "7 năm kinh nghiệm",
     tags: ["Huyền bí", "Tiên tri", "Tâm linh"],
     strengths: [
@@ -54,6 +56,7 @@ Cấu trúc bài đọc:
     name: "Bestie Thẳng Thắn",
     emoji: "💬",
     avatarBg: "linear-gradient(135deg, #3d0a2a 0%, #9d1a5c 50%, #e8478b 100%)",
+    avatarImage: "/readers/bestie.jpg",
     experience: "4 năm kinh nghiệm",
     tags: ["Thẳng thắn", "Thực tế", "Gen Z"],
     strengths: [
@@ -87,6 +90,7 @@ Cấu trúc bài đọc:
     name: "Nhà Tâm Lý",
     emoji: "🧠",
     avatarBg: "linear-gradient(135deg, #021a2e 0%, #064e6e 50%, #0891b2 100%)",
+    avatarImage: "/readers/nha-tam-ly.jpg",
     experience: "5 năm kinh nghiệm",
     tags: ["Lý trí", "Phân tích", "Nội tâm"],
     strengths: [
@@ -120,6 +124,7 @@ Cấu trúc bài đọc:
     name: "Thiên Thần",
     emoji: "👼",
     avatarBg: "linear-gradient(135deg, #1a0c00 0%, #7a4000 50%, #d97706 100%)",
+    avatarImage: "/readers/thien-than.jpg",
     experience: "6 năm kinh nghiệm",
     tags: ["Chữa lành", "Tâm linh", "Năng lượng"],
     strengths: [

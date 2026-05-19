@@ -48,10 +48,14 @@ function ReaderDetailModal({
           {/* Header */}
           <div className="flex items-center gap-4">
             <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-lg"
+              className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 shadow-lg flex items-center justify-center text-3xl"
               style={{ background: reader.avatarBg }}
             >
-              {reader.emoji}
+              {reader.avatarImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={reader.avatarImage} alt={reader.name}
+                  className="w-full h-full object-cover object-top" />
+              ) : reader.emoji}
             </div>
             <div>
               <p className="font-display font-bold text-purple-deep text-lg leading-tight">{reader.name}</p>
@@ -145,12 +149,28 @@ function ReaderCard({
       {/* Avatar — app icon style */}
       <div className="relative shrink-0">
         <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-md"
+          className="w-16 h-16 rounded-2xl overflow-hidden shadow-md flex items-center justify-center text-3xl"
           style={{ background: reader.avatarBg }}
         >
-          {reader.emoji}
+          {reader.avatarImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={reader.avatarImage}
+              alt={reader.name}
+              className="w-full h-full object-cover object-top"
+              onError={(e) => {
+                // fallback to emoji if image missing
+                const target = e.currentTarget;
+                target.style.display = "none";
+                const parent = target.parentElement;
+                if (parent) parent.innerHTML = reader.emoji;
+              }}
+            />
+          ) : (
+            reader.emoji
+          )}
         </div>
-        {/* Floating sparkles around avatar */}
+        {/* Floating sparkles */}
         <span className="absolute -top-1 -right-1 text-[10px] opacity-60"
           style={{ color: reader.color }}>✦</span>
         <span className="absolute -bottom-0.5 -left-1 text-[8px] opacity-40"
