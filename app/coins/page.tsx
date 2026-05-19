@@ -9,9 +9,9 @@ import PaymentModal from "@/components/PaymentModal";
 
 const HOW_IT_WORKS = [
   { emoji: "🎴", label: "Xào & lật bài",          cost: "Miễn phí",   free: true  },
-  { emoji: "🔮", label: "AI đọc 1 lá",             cost: "2 xu",       free: false },
-  { emoji: "🔮", label: "AI đọc 3 lá",             cost: "4 xu",       free: false },
-  { emoji: "🔮", label: "AI đọc 5 lá",             cost: "6 xu",       free: false },
+  { emoji: "🔮", label: "Thần Bài đọc 1 lá",        cost: "2 xu",       free: false },
+  { emoji: "🔮", label: "Thần Bài đọc 3 lá",        cost: "4 xu",       free: false },
+  { emoji: "🔮", label: "Thần Bài đọc 5 lá",        cost: "6 xu",       free: false },
   { emoji: "💬", label: "Chat hỏi thêm bestie",    cost: "1 xu / tin", free: false },
   { emoji: "📅", label: "Điểm danh hàng ngày",     cost: "+3 xu free", free: true  },
 ];

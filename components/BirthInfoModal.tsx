@@ -78,7 +78,7 @@ export default function BirthInfoModal({ isOpen, onDone }: Props) {
                 Kể bestie nghe một chút nhé!
               </h2>
               <p className="font-body text-purple-deep/60 text-sm mt-1.5 leading-relaxed">
-                Tên, ngày sinh & giới tính giúp AI đọc bài chuẩn xác và<strong className="text-purple-deep"> cá nhân hoá riêng cho bạn</strong> ✨
+                Tên, ngày sinh & giới tính giúp Thần Bài giải mã chuẩn xác và<strong className="text-purple-deep"> cá nhân hoá riêng cho bạn</strong> ✨
               </p>
             </div>
 

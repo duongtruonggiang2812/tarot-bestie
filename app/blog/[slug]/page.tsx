@@ -206,7 +206,7 @@ export default async function BlogPostPage({ params }: Props) {
               Rút bài ngay 🔮
             </p>
             <p className="font-body text-white/75 text-sm mb-5">
-              Rút bài miễn phí, AI đọc bài tiếng Việt chuẩn xác
+              Rút bài miễn phí, Thần Bài giải mã tiếng Việt chuẩn xác
             </p>
             <Link href="/reading">
               <button className="px-7 py-3 rounded-full font-body font-bold text-purple-deep bg-white hover:bg-white/90 transition-colors text-sm shadow-lg">

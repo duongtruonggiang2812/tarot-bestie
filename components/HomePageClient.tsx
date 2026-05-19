@@ -63,7 +63,7 @@ const READERS = [
 const STEPS = [
   { step: "01", emoji: "🎯", title: "Chọn chủ đề", desc: "Tình yêu? Sự nghiệp? Hay muốn vũ trụ tự chọn cho?" },
   { step: "02", emoji: "🃏", title: "Rút bài ngẫu nhiên", desc: "Xào bài — rút 1, 3 hoặc 5 lá. Vũ trụ sẽ dẫn đường." },
-  { step: "03", emoji: "✨", title: "AI đọc bài cho nghe", desc: "Nhận diễn giải chi tiết bằng tiếng Việt, hỏi thêm bao nhiêu cũng được." },
+  { step: "03", emoji: "✨", title: "Thần Bài lên tiếng", desc: "Nhận diễn giải chi tiết bằng tiếng Việt, hỏi thêm bao nhiêu cũng được." },
 ];
 
 const TESTIMONIALS = [
@@ -184,10 +184,10 @@ export default function HomePageClient() {
   }, []);
 
   const faqItems = [
-    { q: "Tarot Bestie có miễn phí không?", a: "Hoàn toàn miễn phí để rút bài và xem tổng quan! AI đọc bài chi tiết và chat hỏi thêm dùng xu — bạn nhận 3 xu miễn phí mỗi ngày chỉ bằng cách điểm danh 🎁" },
+    { q: "Tarot Bestie có miễn phí không?", a: "Hoàn toàn miễn phí để rút bài và xem tổng quan! Thần Bài giải mã chi tiết và chat hỏi thêm dùng xu — bạn nhận 3 xu miễn phí mỗi ngày chỉ bằng cách điểm danh 🎁" },
     { q: "Không biết gì về tarot có dùng được không?", a: "Dùng được ngay! Bạn không cần biết gì về tarot hết. Chỉ cần rút bài và đọc diễn giải của AI là đủ. Đơn giản như chat với bestie vậy thôi 😊" },
     { q: "4 reader khác nhau thế nào?", a: "Mỗi reader có cá tính riêng: Bà Đồng huyền bí tâm linh, Bestie thẳng thắn Gen Z, Nhà Tâm Lý phân tích sâu, Thiên Thần nhẹ nhàng chữa lành. Cùng một câu hỏi, 4 góc nhìn hoàn toàn khác nhau!" },
-    { q: "Kết quả có chính xác không?", a: "Tarot không phải tiên tri — mà là gương phản chiếu. AI đọc bài dựa trên ý nghĩa 78 lá Rider-Waite kết hợp với câu hỏi của bạn, giúp nhìn vấn đề từ góc độ mới 🔮" },
+    { q: "Kết quả có chính xác không?", a: "Tarot không phải tiên tri — mà là gương phản chiếu. Thần Bài giải mã dựa trên ý nghĩa 78 lá Rider-Waite kết hợp với câu hỏi của bạn, giúp nhìn vấn đề từ góc độ mới 🔮" },
   ];
 
   return (

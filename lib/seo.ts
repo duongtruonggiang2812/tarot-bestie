@@ -10,7 +10,7 @@ export const SEO = {
     template: "%s | Tarot Bestie",
   },
   description:
-    "Rút bài tarot online miễn phí, AI đọc bài tiếng Việt chuẩn xác. Xem tình yêu, sự nghiệp, tài chính với 4 reader cá tính: Bà Đồng, Bestie, Nhà Tâm Lý, Thiên Thần.",
+    "Rút bài tarot online miễn phí, Thần Bài giải mã tiếng Việt chuẩn xác. Xem tình yêu, sự nghiệp, tài chính với 4 reader cá tính: Bà Đồng, Bestie, Nhà Tâm Lý, Thiên Thần.",
   keywords: [
     "tarot online",
     "xem bói tarot",
@@ -78,7 +78,7 @@ export const faqSchema = {
       name: "Tarot Bestie có miễn phí không?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Có! Rút bài và xem tổng quan hoàn toàn miễn phí. AI đọc bài chi tiết và chat hỏi thêm sử dụng xu — bạn nhận 3 xu miễn phí mỗi ngày khi điểm danh.",
+        text: "Có! Rút bài và xem tổng quan hoàn toàn miễn phí. Thần Bài giải mã chi tiết và chat hỏi thêm sử dụng xu — bạn nhận 3 xu miễn phí mỗi ngày khi điểm danh.",
       },
     },
     {

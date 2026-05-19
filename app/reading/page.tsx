@@ -397,10 +397,10 @@ function ReadingPageInner() {
 
               <div className="flex flex-col gap-2">
                 <h3 className="font-display text-xl font-bold text-purple-deep">
-                  Đăng nhập để AI đọc bài
+                  Đăng nhập để Thần Bài giải mã
                 </h3>
                 <p className="font-body text-purple-deep/60 text-sm leading-relaxed">
-                  Bài của bestie vẫn được giữ nguyên — đăng nhập xong là AI đọc luôn, không cần làm lại từ đầu nhé! ✨
+                  Bài của bạn vẫn được giữ nguyên — đăng nhập xong Thần Bài giải mã luôn, không cần làm lại từ đầu nhé! ✨
                 </p>
               </div>
 
@@ -472,7 +472,7 @@ function ReadingPageInner() {
                   Vũ trụ nhắn gì hôm nay? 🔮
                 </h1>
                 <p className="font-body text-purple-deep/60 mt-3 text-base">
-                  Chọn chủ đề và số lá — bestie AI đọc cho nghe liền 🌙
+                  Chọn chủ đề và số lá — Thần Bài sẽ giải mã cho bạn 🌙
                 </p>
               </div>
 
@@ -536,7 +536,7 @@ function ReadingPageInner() {
                 <div className="text-center mt-2 flex flex-col items-center gap-1">
                   <FreeLabel />
                   <span className="text-xs font-body text-purple-deep/40">
-                    AI đọc bài tốn <strong className="text-purple-deep/60">{getAiReadCost(selectedCount)} xu</strong> · Chat hỏi thêm tốn <strong className="text-purple-deep/60">1 xu/tin</strong>
+                    Thần Bài giải mã tốn <strong className="text-purple-deep/60">{getAiReadCost(selectedCount)} xu</strong> · Hỏi thêm tốn <strong className="text-purple-deep/60">1 xu/tin</strong>
                   </span>
                 </div>
               </div>
@@ -570,7 +570,7 @@ function ReadingPageInner() {
                 {userQuestion && (
                   <motion.p className="text-center text-sm font-body text-purple-mid mt-2"
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    ✨ AI sẽ đọc bài tập trung vào câu hỏi của bạn!
+                    ✨ Thần Bài sẽ giải mã tập trung vào câu hỏi của bạn!
                   </motion.p>
                 )}
               </div>
@@ -717,7 +717,7 @@ function ReadingPageInner() {
                 <motion.div className="flex flex-col items-center gap-4 mt-2"
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
                   <p className="font-body text-base text-center" style={{ color: "rgba(232,213,163,0.7)" }}>
-                    Tất cả lá đã chọn ✦ Để AI đọc bài cho bạn nhé?
+                    Tất cả lá đã chọn ✦ Để Thần Bài giải mã cho bạn nhé?
                   </p>
                   <motion.button onClick={handleGetReading}
                     className="flex items-center gap-3 px-12 py-4 rounded-full font-body font-bold text-base"
@@ -726,7 +726,7 @@ function ReadingPageInner() {
                     whileTap={{ scale: 0.97 }}
                     animate={{ boxShadow: ["0 0 20px rgba(212,168,71,0.3)", "0 0 40px rgba(212,168,71,0.6)", "0 0 20px rgba(212,168,71,0.3)"] }}
                     transition={{ duration: 2, repeat: Infinity }}>
-                    ✦ AI đọc bài cho mình · {getAiReadCost(selectedCount)} xu
+                    ✦ Thần Bài giải mã cho mình · {getAiReadCost(selectedCount)} xu
                   </motion.button>
                 </motion.div>
               )}
@@ -757,7 +757,7 @@ function ReadingPageInner() {
                 animate={{ boxShadow: ["0 8px 30px rgba(123,79,166,0.3)", "0 8px 50px rgba(123,79,166,0.5)", "0 8px 30px rgba(123,79,166,0.3)"] }}
                 transition={{ duration: 1.5, repeat: Infinity }}>
                 <span>🔮</span>
-                <span>AI đọc bài cho mình</span>
+                <span>Thần Bài giải mã cho mình</span>
                 <span className="text-sm font-normal opacity-80">· {getAiReadCost(selectedCount)} xu</span>
               </motion.button>
             </motion.div>
@@ -853,7 +853,7 @@ function ReadingPageInner() {
                       >
                         🔮
                       </motion.div>
-                      <p className="font-body text-sm font-semibold text-purple-deep/60">Bestie AI đang đọc bài... 🔮</p>
+                      <p className="font-body text-sm font-semibold text-purple-deep/60">Thần Bài đang giải mã... 🔮</p>
                       <p className="font-body text-xs text-purple-deep/35">Thường mất 10–20 giây, chờ tí nhé!</p>
                     </div>
                   )}
