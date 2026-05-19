@@ -18,150 +18,114 @@ function ReaderDetailModal({
 }) {
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/75 backdrop-blur-md"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Card */}
       <motion.div
-        className="relative w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl"
-        style={{
-          background: "linear-gradient(170deg, #120820 0%, #0d0618 100%)",
-          border: `1.5px solid ${reader.color}70`,
-          boxShadow: `0 0 40px ${reader.color}30, 0 20px 60px rgba(0,0,0,0.7)`,
-        }}
-        initial={{ scale: 0.9, y: 24, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0.9, y: 16, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 28 }}
+        className="relative w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl"
+        style={{ background: "linear-gradient(160deg, #fff 0%, #f3e8ff 100%)" }}
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 40, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        {/* Top accent */}
-        <div
-          className="h-0.5 w-full"
-          style={{ background: `linear-gradient(90deg, transparent, ${reader.color}cc, transparent)` }}
-        />
+        {/* Drag handle (mobile) */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-purple-deep/20" />
+        </div>
 
-        {/* Close */}
+        {/* Close (desktop) */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors"
-          style={{ color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.06)" }}
+          className="absolute top-4 right-4 hidden sm:flex w-7 h-7 rounded-full items-center justify-center text-sm text-purple-deep/30 hover:text-purple-deep/60 hover:bg-purple-deep/8 transition-colors"
         >
           ✕
         </button>
 
-        {/* Header */}
-        <div className="flex flex-col items-center pt-7 pb-5 px-6">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
-            style={{
-              background: reader.avatarBg,
-              border: `2px solid ${reader.color}70`,
-              boxShadow: `0 0 24px ${reader.color}50`,
-            }}
-          >
-            {reader.emoji}
-          </div>
-          <h3
-            className="font-display font-bold text-xl mt-4 text-center"
-            style={{ color: reader.color }}
-          >
-            {reader.name}
-          </h3>
-          <p className="font-body text-xs mt-1.5" style={{ color: "rgba(212,168,71,0.5)" }}>
-            {reader.tagline}
-          </p>
-          <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-            {reader.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-2.5 py-0.5 rounded-full font-body text-[11px] font-semibold"
-                style={{
-                  background: `${reader.color}20`,
-                  color: reader.color,
-                  border: `1px solid ${reader.color}45`,
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="mx-5 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-
-        {/* Strengths */}
-        <div className="px-6 py-4">
-          <p
-            className="font-body text-[11px] font-bold uppercase tracking-widest mb-3"
-            style={{ color: `${reader.color}bb` }}
-          >
-            Điểm mạnh
-          </p>
-          <div className="flex flex-col gap-2.5">
-            {reader.strengths.map((s, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <span className="text-xs mt-0.5 shrink-0" style={{ color: reader.color }}>✦</span>
-                <p className="font-body text-sm leading-relaxed" style={{ color: "rgba(220,210,240,0.75)" }}>
-                  {s}
-                </p>
+        {/* Content */}
+        <div className="px-6 pt-4 pb-6 flex flex-col gap-4">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-md"
+              style={{ background: reader.avatarBg }}
+            >
+              {reader.emoji}
+            </div>
+            <div>
+              <p className="font-display font-bold text-purple-deep text-lg leading-tight">{reader.name}</p>
+              <p className="font-body text-purple-deep/50 text-xs mt-0.5 italic">{reader.tagline}</p>
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {reader.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-0.5 rounded-full font-body text-[10px] font-semibold"
+                    style={{
+                      background: `${reader.color}18`,
+                      color: reader.color,
+                      border: `1px solid ${reader.color}35`,
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
 
-        {/* Quote */}
-        <div
-          className="mx-5 mb-4 px-4 py-3 rounded-xl"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <p
-            className="font-body text-sm italic text-center leading-relaxed"
-            style={{ color: "rgba(220,210,240,0.5)" }}
-          >
-            &ldquo;{reader.quote}&rdquo;
-          </p>
-        </div>
+          {/* Divider */}
+          <div className="h-px bg-purple-deep/8" />
 
-        {/* Specialties */}
-        <div className="px-6 pb-2">
-          <p
-            className="font-body text-[11px] font-bold uppercase tracking-widest mb-3"
-            style={{ color: `${reader.color}bb` }}
-          >
-            Chuyên đọc
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {reader.specialties.map((s, i) => (
-              <p key={i} className="font-body text-sm" style={{ color: "rgba(220,210,240,0.5)" }}>
-                · {s}
-              </p>
-            ))}
+          {/* Strengths */}
+          <div>
+            <p className="font-body text-[11px] font-bold text-purple-deep/40 uppercase tracking-widest mb-2">Điểm mạnh</p>
+            <div className="flex flex-col gap-2">
+              {reader.strengths.map((s, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-xs mt-0.5 shrink-0" style={{ color: reader.color }}>✦</span>
+                  <p className="font-body text-sm text-purple-deep/75 leading-relaxed">{s}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* CTA */}
-        <div className="px-5 py-5">
+          {/* Quote */}
+          <div
+            className="px-4 py-3 rounded-2xl"
+            style={{ background: `${reader.color}0f`, border: `1px solid ${reader.color}25` }}
+          >
+            <p className="font-body text-sm italic text-center text-purple-deep/60 leading-relaxed">
+              &ldquo;{reader.quote}&rdquo;
+            </p>
+          </div>
+
+          {/* Specialties */}
+          <div>
+            <p className="font-body text-[11px] font-bold text-purple-deep/40 uppercase tracking-widest mb-2">Chuyên đọc</p>
+            <div className="flex flex-col gap-1">
+              {reader.specialties.map((s, i) => (
+                <p key={i} className="font-body text-sm text-purple-deep/55">· {s}</p>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
           <motion.button
-            className="w-full py-3.5 rounded-2xl font-body font-bold text-sm"
+            className="w-full py-3.5 rounded-2xl font-body font-bold text-sm mt-1"
             style={
               isSelected
-                ? { background: `linear-gradient(135deg, ${reader.color}, ${reader.color}99)`, color: "#fff" }
-                : { background: "linear-gradient(135deg, #d4a847, #a07818)", color: "#1a0e00" }
+                ? { background: `linear-gradient(135deg, ${reader.color}, ${reader.color}bb)`, color: "#fff" }
+                : { background: "linear-gradient(135deg, #7c3aed, #a855f7)", color: "#fff" }
             }
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => { onSelect(); onClose(); }}
           >
-            {isSelected ? "✓ Đang chọn reader này" : "Chọn reader này →"}
+            {isSelected ? `✓ Đang chọn ${reader.name}` : `Chọn ${reader.name} →`}
           </motion.button>
         </div>
       </motion.div>
@@ -183,88 +147,56 @@ function ReaderCard({
 }) {
   return (
     <motion.div
-      className="relative flex flex-col items-center rounded-2xl overflow-hidden cursor-pointer"
-      style={{
-        background: "linear-gradient(170deg, #120820 0%, #0d0618 100%)",
-        border: isSelected
-          ? `1.5px solid ${reader.color}99`
-          : "1.5px solid rgba(255,255,255,0.07)",
-        boxShadow: isSelected
-          ? `0 0 28px ${reader.color}35, 0 8px 32px rgba(0,0,0,0.5)`
-          : "0 4px 20px rgba(0,0,0,0.4)",
-      }}
       onClick={onSelect}
-      whileHover={{ y: -3, scale: 1.015 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="relative rounded-2xl p-4 flex flex-col items-center gap-2.5 border-2 cursor-pointer transition-all"
+      style={{
+        background: isSelected ? `${reader.color}12` : "rgba(255,255,255,0.5)",
+        borderColor: isSelected ? reader.color : "rgba(255,255,255,0.6)",
+        backdropFilter: "blur(8px)",
+        boxShadow: isSelected ? `0 4px 20px ${reader.color}25` : "0 2px 12px rgba(0,0,0,0.06)",
+      }}
+      whileHover={{ scale: 1.03, y: -2 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 300, damping: 22 }}
     >
-      {/* Top glow line */}
-      <div
-        className="w-full h-0.5 shrink-0"
-        style={{
-          background: isSelected
-            ? `linear-gradient(90deg, transparent, ${reader.color}cc, transparent)`
-            : "transparent",
-        }}
-      />
-
-      {/* Info button — top right */}
+      {/* Info button */}
       <button
         onClick={(e) => { e.stopPropagation(); onDetail(); }}
-        className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all z-10"
-        style={{
-          background: "rgba(255,255,255,0.07)",
-          color: "rgba(212,168,71,0.6)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-        title="Xem chi tiết reader"
+        className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors"
+        style={{ color: "rgba(59,31,107,0.3)", background: "rgba(59,31,107,0.06)" }}
+        title="Xem chi tiết"
       >
         i
       </button>
 
       {/* Avatar */}
-      <div className="pt-6 pb-3">
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center text-3xl relative"
-          style={{
-            background: reader.avatarBg,
-            border: `2px solid ${isSelected ? reader.color + "80" : "rgba(255,255,255,0.1)"}`,
-            boxShadow: isSelected ? `0 0 18px ${reader.color}50` : undefined,
-          }}
-        >
-          {reader.emoji}
-          {isSelected && (
-            <motion.div
-              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-              style={{ background: reader.color, border: "2px solid #0d0618" }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 18 }}
-            >
-              ✓
-            </motion.div>
-          )}
-        </div>
+      <div
+        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
+        style={{
+          background: reader.avatarBg,
+          boxShadow: isSelected ? `0 4px 14px ${reader.color}40` : undefined,
+        }}
+      >
+        {reader.emoji}
       </div>
 
       {/* Name */}
       <p
-        className="font-display font-bold text-base text-center px-3 leading-snug"
-        style={{ color: isSelected ? reader.color : "#d4a847" }}
+        className="font-display font-bold text-sm text-center leading-snug"
+        style={{ color: isSelected ? reader.color : "#3b1f6b" }}
       >
         {reader.name}
       </p>
 
       {/* Tags */}
-      <div className="flex flex-wrap justify-center gap-1.5 mt-3 px-3">
-        {reader.tags.map((tag) => (
+      <div className="flex flex-wrap justify-center gap-1">
+        {reader.tags.slice(0, 2).map((tag) => (
           <span
             key={tag}
-            className="px-2 py-0.5 rounded-full font-body text-[10px] font-semibold"
+            className="px-2 py-0.5 rounded-full font-body text-[10px]"
             style={{
-              background: isSelected ? `${reader.color}20` : "rgba(255,255,255,0.05)",
-              color: isSelected ? reader.color : "rgba(212,168,71,0.6)",
-              border: `1px solid ${isSelected ? reader.color + "45" : "rgba(255,255,255,0.08)"}`,
+              background: isSelected ? `${reader.color}18` : "rgba(59,31,107,0.06)",
+              color: isSelected ? reader.color : "rgba(59,31,107,0.5)",
             }}
           >
             {tag}
@@ -272,46 +204,35 @@ function ReaderCard({
         ))}
       </div>
 
-      {/* Quote */}
-      <div
-        className="mx-4 mt-4 mb-4 px-3 py-2.5 rounded-xl w-[calc(100%-2rem)]"
-        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
-      >
-        <p
-          className="font-body text-[11px] italic text-center leading-relaxed"
-          style={{ color: "rgba(220,210,240,0.45)" }}
-        >
-          &ldquo;{reader.quote}&rdquo;
-        </p>
-      </div>
-
-      {/* Button */}
-      <div className="px-4 pb-5 w-full">
-        <div
-          className="w-full py-2.5 rounded-xl font-body font-bold text-xs text-center"
-          style={
-            isSelected
-              ? { background: `linear-gradient(135deg, ${reader.color}dd, ${reader.color}99)`, color: "#fff" }
-              : { background: "linear-gradient(135deg, #c49a2a, #a07818)", color: "#1a0e00" }
-          }
-        >
-          {isSelected ? "✓ Đã chọn" : "Chọn reader này →"}
-        </div>
-      </div>
+      {/* Selected checkmark */}
+      <AnimatePresence>
+        {isSelected && (
+          <motion.div
+            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md"
+            style={{ background: reader.color }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+          >
+            ✓
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
-/* ── Main Component ───────────────────────────────────────────────────────── */
+/* ── Main ─────────────────────────────────────────────────────────────────── */
 export default function ReaderPicker({ selectedId, onChange }: { selectedId: string; onChange: (id: string) => void }) {
   const [detailReader, setDetailReader] = useState<TarotReader | null>(null);
 
   return (
     <div className="w-full max-w-2xl">
-      <h2 className="font-display font-bold text-purple-deep text-xl mb-2 text-center">
+      <h2 className="font-display font-bold text-purple-deep text-xl mb-1.5 text-center">
         Chọn reader của bạn
       </h2>
-      <p className="font-body text-purple-deep/45 text-sm mb-6 text-center">
+      <p className="font-body text-purple-deep/45 text-sm mb-5 text-center">
         Mỗi reader có phong cách đọc bài riêng · Miễn phí ✨
       </p>
 
@@ -327,24 +248,6 @@ export default function ReaderPicker({ selectedId, onChange }: { selectedId: str
         ))}
       </div>
 
-      <AnimatePresence>
-        {selectedId && (
-          <motion.p
-            className="text-center font-body text-sm mt-4 italic"
-            style={{ color: "rgba(100,60,160,0.55)" }}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
-            {(() => {
-              const r = TAROT_READERS.find((x) => x.id === selectedId);
-              return r ? <>{r.emoji} {r.tagline}</> : null;
-            })()}
-          </motion.p>
-        )}
-      </AnimatePresence>
-
-      {/* Detail modal */}
       <AnimatePresence>
         {detailReader && (
           <ReaderDetailModal
