@@ -18,7 +18,7 @@ export interface TarotReader {
 export const TAROT_READERS: TarotReader[] = [
   {
     id: "mystic",
-    name: "Huyền Linh Tarot",
+    name: "Bà Đồng Huyền Bí",
     emoji: "🌙",
     avatarBg: "linear-gradient(135deg, #1a0533 0%, #4a1080 50%, #7c3aed 100%)",
     experience: "7 năm kinh nghiệm",
@@ -51,7 +51,7 @@ Cấu trúc bài đọc:
 
   {
     id: "frank",
-    name: "Bestie Tarot",
+    name: "Bestie Thẳng Thắn",
     emoji: "💬",
     avatarBg: "linear-gradient(135deg, #3d0a2a 0%, #9d1a5c 50%, #e8478b 100%)",
     experience: "4 năm kinh nghiệm",
@@ -84,7 +84,7 @@ Cấu trúc bài đọc:
 
   {
     id: "analyst",
-    name: "Minh Tâm Tarot",
+    name: "Nhà Tâm Lý",
     emoji: "🧠",
     avatarBg: "linear-gradient(135deg, #021a2e 0%, #064e6e 50%, #0891b2 100%)",
     experience: "5 năm kinh nghiệm",
@@ -117,7 +117,7 @@ Cấu trúc bài đọc:
 
   {
     id: "angel",
-    name: "Ánh Sáng Tarot",
+    name: "Thiên Thần",
     emoji: "👼",
     avatarBg: "linear-gradient(135deg, #1a0c00 0%, #7a4000 50%, #d97706 100%)",
     experience: "6 năm kinh nghiệm",
