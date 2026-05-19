@@ -1,0 +1,43 @@
+# Tarot Bestie — llms.txt
+# https://llmstxt.org
+
+> Tarot Bestie là ứng dụng xem bói tarot online bằng AI tiếng Việt, miễn phí, dành cho Gen Z Việt Nam.
+
+## Về Tarot Bestie
+
+Tarot Bestie cung cấp trải nghiệm xem bói tarot với AI đọc bài tiếng Việt chuẩn xác, thân thiện. Người dùng rút ngẫu nhiên từ bộ 78 lá Rider-Waite và nhận diễn giải chi tiết từ AI theo phong cách của reader được chọn.
+
+## Tính năng chính
+
+- Rút bài tarot ngẫu nhiên từ 78 lá Rider-Waite (Major & Minor Arcana)
+- 4 reader AI với phong cách đọc bài khác nhau: Bà Đồng Huyền Bí, Bestie Thẳng Thắn, Nhà Tâm Lý, Thiên Thần
+- Đọc trải bài 1 lá, 3 lá, 5 lá
+- Chat hỏi thêm với AI sau khi xem bài
+- Lưu lịch sử 10 lần bói gần nhất
+- Điểm danh hàng ngày nhận xu miễn phí
+
+## Reader AI
+
+- **Bà Đồng Huyền Bí**: Phong cách huyền học, trực giác, dùng ngôn ngữ tâm linh
+- **Bestie Thẳng Thắn**: Thực tế, thẳng thắn, ngôn ngữ Gen Z
+- **Nhà Tâm Lý**: Phân tích tâm lý sâu, nội tâm, khoa học
+- **Thiên Thần**: Chữa lành, yêu thương, tích cực
+
+## Chủ đề bói
+
+Tình yêu, Sự nghiệp, Tài chính, Bản thân, Tổng quát
+
+## Giá & Miễn phí
+
+- Rút bài và xem tổng quan: miễn phí
+- AI đọc bài chi tiết: 2–6 xu / lần
+- Chat hỏi thêm: 1 xu / tin
+- Điểm danh hàng ngày: +3 xu miễn phí
+- Mua xu: từ 30.000đ
+
+## Thông tin kỹ thuật
+
+- Ngôn ngữ: Tiếng Việt
+- Nền tảng: Web (mobile-first)
+- AI: Claude (Anthropic)
+- Thị trường: Việt Nam
