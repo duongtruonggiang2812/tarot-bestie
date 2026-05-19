@@ -469,17 +469,17 @@ function ReadingPageInner() {
             >
               <div className="text-center">
                 <h1 className="font-display text-4xl sm:text-5xl font-bold text-purple-deep">
-                  Hôm nay hỏi gì? 🔮
+                  Vũ trụ nhắn gì hôm nay? 🔮
                 </h1>
                 <p className="font-body text-purple-deep/60 mt-3 text-base">
-                  Chọn chủ đề và số lá bài — vũ trụ sẽ trả lời ngay 🌙
+                  Chọn chủ đề và số lá — bestie AI đọc cho nghe liền 🌙
                 </p>
               </div>
 
               {/* Theme */}
               <div className="w-full max-w-2xl">
                 <h2 className="font-display font-bold text-purple-deep text-xl mb-5 text-center">
-                  Chủ đề hôm nay?
+                  Đang muốn hỏi về gì? 🤔
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {THEMES.map((t) => (
@@ -504,7 +504,7 @@ function ReadingPageInner() {
               {/* Card count */}
               <div className="w-full max-w-md">
                 <h2 className="font-display font-bold text-purple-deep text-xl mb-5 text-center">
-                  Rút mấy lá?
+                  Muốn đọc sâu cỡ nào? 🃏
                 </h2>
                 <div className="flex justify-center gap-4">
                   {CARD_COUNTS.map((count) => (
@@ -547,13 +547,13 @@ function ReadingPageInner() {
               {/* Question input */}
               <div className="w-full max-w-xl">
                 <h2 className="font-display font-bold text-purple-deep text-xl mb-3 text-center">
-                  Câu hỏi của bạn? <span className="text-purple-deep/40 text-base font-normal">(tuỳ chọn)</span>
+                  Muốn hỏi cụ thể không? <span className="text-purple-deep/40 text-base font-normal">(không bắt buộc)</span>
                 </h2>
                 <div className="relative">
                   <textarea
                     value={userQuestion}
                     onChange={(e) => setUserQuestion(e.target.value)}
-                    placeholder="VD: Tình cảm của mình và người đó sẽ đi về đâu? Mình có nên thay đổi công việc không?..."
+                    placeholder="VD: Crush có thích mình không? Tháng này có nên nhảy việc không?..."
                     maxLength={200}
                     rows={3}
                     className="w-full rounded-2xl px-5 py-4 font-body text-base text-purple-deep placeholder-purple-deep/30 outline-none resize-none border-2 transition-all"
@@ -597,7 +597,7 @@ function ReadingPageInner() {
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                🎴 Xào bài thôi!
+                🎴 Xào bài — bắt đầu thôi!
               </motion.button>
             </motion.div>
           )}
@@ -614,7 +614,7 @@ function ReadingPageInner() {
               <div className="text-center">
                 <h2 className="font-display text-3xl sm:text-4xl font-bold"
                   style={{ color: "#e8d5a3", textShadow: "0 0 30px rgba(212,168,71,0.4)" }}>
-                  Tập trung vào câu hỏi
+                  Thở đều · Tập trung · Rút bài 🌙
                 </h2>
                 <p className="font-body text-base mt-2" style={{ color: "rgba(232,213,163,0.6)" }}>
                   {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá · {activeReader.emoji} {activeReader.name}
@@ -645,7 +645,7 @@ function ReadingPageInner() {
                   </div>
                 ) : (
                   <p className="font-body text-sm mt-1" style={{ color: "rgba(232,213,163,0.5)" }}>
-                    Chọn {selectedCount} lá bài từ bộ bài phía dưới
+                    Tin vào trực giác — chọn {selectedCount} lá bạn cảm thấy kéo về phía mình ✨
                   </p>
                 )}
               </div>
@@ -853,7 +853,8 @@ function ReadingPageInner() {
                       >
                         🔮
                       </motion.div>
-                      <p className="font-body text-sm">Đang đọc bài cho bạn...</p>
+                      <p className="font-body text-sm font-semibold text-purple-deep/60">Bestie AI đang đọc bài... 🔮</p>
+                      <p className="font-body text-xs text-purple-deep/35">Thường mất 10–20 giây, chờ tí nhé!</p>
                     </div>
                   )}
 
@@ -902,7 +903,7 @@ function ReadingPageInner() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    🃏 Rút lại bài mới
+                    🃏 Hỏi câu khác
                   </motion.button>
                 </motion.div>
               )}

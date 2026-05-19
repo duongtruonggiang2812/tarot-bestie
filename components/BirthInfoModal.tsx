@@ -73,12 +73,12 @@ export default function BirthInfoModal({ isOpen, onDone }: Props) {
           >
             {/* Header */}
             <div className="text-center">
-              <div className="text-4xl mb-2">🔮</div>
+              <div className="text-4xl mb-2">🌙</div>
               <h2 className="font-display font-bold text-purple-deep text-xl leading-snug">
-                Vũ trụ muốn biết thêm về bạn
+                Kể bestie nghe một chút nhé!
               </h2>
               <p className="font-body text-purple-deep/60 text-sm mt-1.5 leading-relaxed">
-                Tên, ngày sinh và giới tính giúp AI đọc bài chính xác và cá nhân hoá hơn cho bạn ✨
+                Tên, ngày sinh & giới tính giúp AI đọc bài chuẩn xác và<strong className="text-purple-deep"> cá nhân hoá riêng cho bạn</strong> ✨
               </p>
             </div>
 
@@ -160,13 +160,13 @@ export default function BirthInfoModal({ isOpen, onDone }: Props) {
                 className="w-full py-3.5 rounded-2xl font-body font-bold text-white text-sm transition-all disabled:opacity-40"
                 style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)" }}
               >
-                ✨ Bắt đầu trải bài
+                🔮 Rút bài ngay!
               </button>
               <button
                 onClick={handleSkip}
                 className="w-full py-2.5 font-body text-sm text-purple-deep/40 hover:text-purple-deep/70 transition-colors"
               >
-                Bỏ qua, trải bài không cần thông tin
+                Hỏi thẳng không cần info
               </button>
             </div>
           </motion.div>
