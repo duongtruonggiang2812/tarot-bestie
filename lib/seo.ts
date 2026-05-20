@@ -1,6 +1,6 @@
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://tarot-app-ashy-phi.vercel.app";
+  "https://tarotbestie.net";
 
 export const SITE_NAME = "Tarot Bestie";
 
