@@ -142,25 +142,9 @@ function parseInline(text: string, key: string): React.ReactNode {
   return parts.length === 1 ? parts[0] : <>{parts}</>;
 }
 
-function TarotMarkdown({
-  text,
-  streaming,
-  cards,
-  positions,
-  onZoom,
-}: {
-  text: string;
-  streaming: boolean;
-  cards?: TarotCardType[];
-  positions?: string[];
-  onZoom?: (card: TarotCardType) => void;
-}) {
+function TarotMarkdown({ text, streaming }: { text: string; streaming: boolean }) {
   const lines = text.split("\n");
   const nodes: React.ReactNode[] = [];
-
-  // Strip diacritics for fuzzy Vietnamese matching
-  const strip = (s: string) =>
-    s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
   lines.forEach((line, i) => {
     const isLast = i === lines.length - 1;
@@ -171,58 +155,12 @@ function TarotMarkdown({
       return;
     }
     if (line.startsWith("### ")) {
-      // Match heading to position by text content (not sequential counter)
-      const heading = line.slice(4).trim();
-      const strippedHeading = strip(heading);
-      const matchedIndex =
-        positions && cards
-          ? positions.findIndex((p) => strippedHeading.includes(strip(p)))
-          : -1;
-      const matchedCard = matchedIndex >= 0 ? cards![matchedIndex] : null;
-      const matchedPosition = matchedIndex >= 0 ? positions![matchedIndex] : null;
-
       nodes.push(
-        <div key={i} className="mt-7 mb-2">
-          {/* Card thumbnail + position chip */}
-          {matchedCard && (
-            <motion.div
-              className="flex items-center gap-3 mb-3 px-3 py-2.5 rounded-2xl"
-              style={{ background: "linear-gradient(120deg,rgba(124,58,237,0.07),rgba(168,85,247,0.04))", border: "1px solid rgba(124,58,237,0.1)" }}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.35 }}
-            >
-              <button
-                onClick={() => onZoom?.(matchedCard)}
-                className="shrink-0 w-10 h-16 rounded-lg overflow-hidden border border-purple-mid/30 hover:scale-105 transition-transform shadow-md"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getCardImageUrl(matchedCard)}
-                  alt={matchedCard.nameVi}
-                  className="w-full h-full object-cover"
-                  style={{ transform: matchedCard.isReversed ? "rotate(180deg)" : "none" }}
-                />
-              </button>
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] font-body font-bold text-purple-mid/70 uppercase tracking-widest leading-none">
-                  {matchedPosition}
-                </span>
-                <span className="font-body font-bold text-purple-deep text-sm leading-snug truncate">
-                  {matchedCard.nameVi}
-                </span>
-                <span className="text-[10px] font-body text-purple-deep/45">
-                  {matchedCard.isReversed ? "↕ Ngược" : "↑ Xuôi"} · {(matchedCard.isReversed ? matchedCard.reversedMeaning : matchedCard.uprightMeaning).slice(0, 36)}…
-                </span>
-              </div>
-            </motion.div>
-          )}
-          <div className="flex items-center gap-2">
-            <span className="w-1 h-5 rounded-full bg-gradient-to-b from-purple-deep to-purple-mid shrink-0" />
-            <h3 className="font-display font-bold text-purple-deep text-lg leading-snug">
-              {parseInline(line.slice(4), `h${i}`)}
-            </h3>
-          </div>
+        <div key={i} className="flex items-center gap-2 mt-6 mb-2">
+          <span className="w-1 h-5 rounded-full bg-gradient-to-b from-purple-deep to-purple-mid shrink-0" />
+          <h3 className="font-display font-bold text-purple-deep text-lg leading-snug">
+            {parseInline(line.slice(4), `h${i}`)}
+          </h3>
         </div>
       );
       return;
@@ -1163,13 +1101,7 @@ function ReadingPageInner() {
                   )}
 
                   {readingText && (
-                    <TarotMarkdown
-                      text={readingText}
-                      streaming={aiStreaming}
-                      cards={cards}
-                      positions={selectedSpread.positions}
-                      onZoom={(c) => setZoomedCard(c)}
-                    />
+                    <TarotMarkdown text={readingText} streaming={aiStreaming} />
                   )}
                 </div>
               </motion.div>
