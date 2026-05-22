@@ -142,9 +142,22 @@ function parseInline(text: string, key: string): React.ReactNode {
   return parts.length === 1 ? parts[0] : <>{parts}</>;
 }
 
-function TarotMarkdown({ text, streaming }: { text: string; streaming: boolean }) {
+function TarotMarkdown({
+  text,
+  streaming,
+  cards,
+  positions,
+  onZoom,
+}: {
+  text: string;
+  streaming: boolean;
+  cards?: TarotCardType[];
+  positions?: string[];
+  onZoom?: (card: TarotCardType) => void;
+}) {
   const lines = text.split("\n");
   const nodes: React.ReactNode[] = [];
+  let posIndex = 0; // tracks which ### heading we're on (maps to spread position)
 
   lines.forEach((line, i) => {
     const isLast = i === lines.length - 1;
@@ -155,12 +168,52 @@ function TarotMarkdown({ text, streaming }: { text: string; streaming: boolean }
       return;
     }
     if (line.startsWith("### ")) {
+      const matchedCard = cards && positions && posIndex < positions.length ? cards[posIndex] : null;
+      const matchedPosition = positions?.[posIndex];
+      posIndex++;
+
       nodes.push(
-        <div key={i} className="flex items-center gap-2 mt-6 mb-2">
-          <span className="w-1 h-5 rounded-full bg-gradient-to-b from-purple-deep to-purple-mid shrink-0" />
-          <h3 className="font-display font-bold text-purple-deep text-lg leading-snug">
-            {parseInline(line.slice(4), `h${i}`)}
-          </h3>
+        <div key={i} className="mt-7 mb-2">
+          {/* Card thumbnail + position chip */}
+          {matchedCard && (
+            <motion.div
+              className="flex items-center gap-3 mb-3 px-3 py-2.5 rounded-2xl"
+              style={{ background: "linear-gradient(120deg,rgba(124,58,237,0.07),rgba(168,85,247,0.04))", border: "1px solid rgba(124,58,237,0.1)" }}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <button
+                onClick={() => onZoom?.(matchedCard)}
+                className="shrink-0 w-10 h-16 rounded-lg overflow-hidden border border-purple-mid/30 hover:scale-105 transition-transform shadow-md"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getCardImageUrl(matchedCard)}
+                  alt={matchedCard.nameVi}
+                  className="w-full h-full object-cover"
+                  style={{ transform: matchedCard.isReversed ? "rotate(180deg)" : "none" }}
+                />
+              </button>
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="text-[10px] font-body font-bold text-purple-mid/70 uppercase tracking-widest leading-none">
+                  {matchedPosition}
+                </span>
+                <span className="font-body font-bold text-purple-deep text-sm leading-snug truncate">
+                  {matchedCard.nameVi}
+                </span>
+                <span className="text-[10px] font-body text-purple-deep/45">
+                  {matchedCard.isReversed ? "↕ Ngược" : "↑ Xuôi"} · {(matchedCard.isReversed ? matchedCard.reversedMeaning : matchedCard.uprightMeaning).slice(0, 36)}…
+                </span>
+              </div>
+            </motion.div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-5 rounded-full bg-gradient-to-b from-purple-deep to-purple-mid shrink-0" />
+            <h3 className="font-display font-bold text-purple-deep text-lg leading-snug">
+              {parseInline(line.slice(4), `h${i}`)}
+            </h3>
+          </div>
         </div>
       );
       return;
@@ -216,9 +269,11 @@ function ReadingPageInner() {
   const initialTheme = searchParams.get("theme") ?? "general";
 
   const [phase, setPhase] = useState<Phase>("setup");
+  const [setupStep, setSetupStep] = useState<1 | 2>(1);
   const [selectedTheme, setSelectedTheme] = useState(initialTheme);
   const [selectedSpread, setSelectedSpread] = useState<Spread>(SPREADS[1]); // default: Dòng Chảy Thời Gian
   const [cards, setCards] = useState<TarotCardType[]>([]);
+  const [ceremonyFlipped, setCeremonyFlipped] = useState<Set<number>>(new Set());
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const [zoomedCard, setZoomedCard] = useState<TarotCardType | null>(null);
   const [readingText, setReadingText] = useState("");
@@ -247,6 +302,15 @@ function ReadingPageInner() {
       } catch {}
     }
   }, [status]);
+
+  // Reveal ceremony: flip cards one by one
+  const handleRevealCeremony = useCallback(() => {
+    cards.forEach((_, i) => {
+      setTimeout(() => {
+        setCeremonyFlipped((prev) => new Set([...prev, i]));
+      }, i * 650);
+    });
+  }, [cards]);
 
   // Rút bài luôn miễn phí — không tốn xu, không giới hạn
   const handleDraw = useCallback(() => {
@@ -388,13 +452,16 @@ function ReadingPageInner() {
 
   const handleReset = () => {
     setPhase("setup");
+    setSetupStep(1);
     setCards([]);
     setRevealedCards(new Set());
+    setCeremonyFlipped(new Set());
     setReadingText("");
   };
 
   const selectedCount = selectedSpread.cardCount;
   const allRevealed = cards.length > 0 && revealedCards.size === cards.length;
+  const allCeremonyDone = allRevealed && ceremonyFlipped.size === cards.length;
   const themeInfo = THEMES.find((t) => t.id === selectedTheme);
   const isDark = phase === "shuffle" || phase === "drawing";
   const activeReader = getReader(selectedReaderId);
@@ -532,147 +599,232 @@ function ReadingPageInner() {
       <div className="relative z-10 max-w-4xl mx-auto px-4 pb-20">
         <AnimatePresence mode="wait">
 
-          {/* PHASE 1: SETUP */}
+          {/* PHASE 1: SETUP — 2 steps */}
           {phase === "setup" && (
             <motion.div
               key="setup"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center gap-10"
+              className="flex flex-col items-center gap-8"
             >
-              <div className="text-center">
-                <h1 className="font-display text-4xl sm:text-5xl font-bold text-purple-deep">
-                  Vũ trụ nhắn gì hôm nay? 🔮
-                </h1>
-                <p className="font-body text-purple-deep/60 mt-3 text-base">
-                  Chọn chủ đề &amp; kiểu trải bài — Thần Bài sẽ giải mã cho bạn 🌙
-                </p>
-              </div>
-
-              {/* Theme */}
-              <div className="w-full max-w-2xl">
-                <h2 className="font-display font-bold text-purple-deep text-xl mb-5 text-center">
-                  Đang muốn hỏi về gì? 🤔
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {THEMES.map((t) => (
-                    <motion.button
-                      key={t.id}
-                      onClick={() => setSelectedTheme(t.id)}
-                      className={`rounded-2xl p-4 flex flex-col items-center gap-2 border-2 transition-all font-body ${
-                        selectedTheme === t.id
-                          ? "border-purple-mid bg-lavender/60 shadow-lg"
-                          : "border-white/50 glass hover:border-purple-mid/40"
+              {/* Progress stepper */}
+              <div className="flex items-center gap-3">
+                {[1, 2].map((step) => (
+                  <React.Fragment key={step}>
+                    <motion.div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold font-body border-2 transition-colors ${
+                        setupStep === step
+                          ? "bg-purple-mid border-purple-mid text-white"
+                          : setupStep > step
+                          ? "bg-purple-mid/20 border-purple-mid text-purple-mid"
+                          : "bg-white/50 border-purple-mid/20 text-purple-deep/30"
                       }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      animate={{ scale: setupStep === step ? 1.1 : 1 }}
                     >
-                      <span className="text-3xl">{t.emoji}</span>
-                      <span className="text-sm font-bold text-purple-deep">{t.name}</span>
-                    </motion.button>
-                  ))}
-                </div>
+                      {setupStep > step ? "✓" : step}
+                    </motion.div>
+                    {step < 2 && (
+                      <div className="relative w-16 h-0.5 rounded-full overflow-hidden bg-purple-mid/15">
+                        <motion.div
+                          className="absolute inset-y-0 left-0 bg-purple-mid rounded-full"
+                          animate={{ width: setupStep > 1 ? "100%" : "0%" }}
+                          transition={{ duration: 0.4 }}
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
 
-              {/* Spread picker */}
-              <div className="w-full max-w-2xl">
-                <h2 className="font-display font-bold text-purple-deep text-xl mb-5 text-center">
-                  Chọn kiểu trải bài 🃏
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {SPREADS.map((spread) => (
+              <AnimatePresence mode="wait">
+                {/* ── STEP 1: Chủ đề + Câu hỏi ── */}
+                {setupStep === 1 && (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: -24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 24 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col items-center gap-8 w-full"
+                  >
+                    <div className="text-center">
+                      <h1 className="font-display text-4xl sm:text-5xl font-bold text-purple-deep">
+                        Vũ trụ nhắn gì hôm nay? 🔮
+                      </h1>
+                      <p className="font-body text-purple-deep/60 mt-3 text-base">
+                        Chọn chủ đề bạn đang quan tâm
+                      </p>
+                    </div>
+
+                    {/* Theme grid */}
+                    <div className="w-full max-w-2xl">
+                      <h2 className="font-display font-bold text-purple-deep text-xl mb-4 text-center">
+                        Đang muốn hỏi về gì? 🤔
+                      </h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                        {THEMES.map((t) => (
+                          <motion.button
+                            key={t.id}
+                            onClick={() => setSelectedTheme(t.id)}
+                            className={`rounded-2xl p-4 flex flex-col items-center gap-2 border-2 transition-all font-body ${
+                              selectedTheme === t.id
+                                ? "border-purple-mid bg-lavender/60 shadow-lg"
+                                : "border-white/50 glass hover:border-purple-mid/40"
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <span className="text-3xl">{t.emoji}</span>
+                            <span className="text-sm font-bold text-purple-deep">{t.name}</span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Question input */}
+                    <div className="w-full max-w-xl">
+                      <h2 className="font-display font-bold text-purple-deep text-xl mb-3 text-center">
+                        Muốn hỏi cụ thể không? <span className="text-purple-deep/40 text-base font-normal">(không bắt buộc)</span>
+                      </h2>
+                      <div className="relative">
+                        <textarea
+                          value={userQuestion}
+                          onChange={(e) => setUserQuestion(e.target.value)}
+                          placeholder="VD: Crush có thích mình không? Tháng này có nên nhảy việc không?..."
+                          maxLength={200}
+                          rows={3}
+                          className="w-full rounded-2xl px-5 py-4 font-body text-base text-purple-deep placeholder-purple-deep/30 outline-none resize-none border-2 transition-all"
+                          style={{
+                            background: "rgba(255,255,255,0.6)",
+                            borderColor: userQuestion ? "rgba(167,139,250,0.6)" : "rgba(255,255,255,0.6)",
+                            backdropFilter: "blur(8px)",
+                          }}
+                        />
+                        <div className="absolute bottom-3 right-4 font-body text-xs text-purple-deep/30">
+                          {userQuestion.length}/200
+                        </div>
+                      </div>
+                      {userQuestion && (
+                        <motion.p className="text-center text-sm font-body text-purple-mid mt-2"
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                          ✨ Thần Bài sẽ giải mã tập trung vào câu hỏi của bạn!
+                        </motion.p>
+                      )}
+                    </div>
+
                     <motion.button
-                      key={spread.id}
-                      onClick={() => setSelectedSpread(spread)}
-                      className={`relative rounded-2xl p-4 flex flex-col items-start gap-1.5 border-2 transition-all font-body text-left ${
-                        selectedSpread.id === spread.id
-                          ? "border-purple-mid bg-lavender/60 shadow-lg"
-                          : "border-white/50 glass hover:border-purple-mid/40"
-                      }`}
+                      onClick={() => setSetupStep(2)}
+                      className="px-14 py-4 rounded-full bg-gradient-to-r from-purple-deep to-purple-mid text-white font-body font-bold text-lg shadow-xl"
                       whileHover={{ scale: 1.04, y: -2 }}
                       whileTap={{ scale: 0.97 }}
                     >
-                      {spread.badge && (
-                        <span className="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-mid/15 text-purple-mid leading-none">
-                          {spread.badge}
-                        </span>
-                      )}
-                      <span className="text-2xl">{spread.emoji}</span>
-                      <span className="text-sm font-bold text-purple-deep leading-snug">{spread.name}</span>
-                      <span className="text-[11px] text-purple-deep/50 leading-snug">{spread.desc}</span>
-                      <span className="text-[11px] font-semibold text-purple-mid/70 mt-0.5">
-                        {spread.cardCount} lá · {getAiReadCost(spread.cardCount)} xu
-                      </span>
+                      Tiếp theo →
                     </motion.button>
-                  ))}
-                </div>
-                <div className="text-center mt-4 flex flex-col items-center gap-1">
-                  <FreeLabel />
-                  <span className="text-xs font-body text-purple-deep/40">
-                    Kiểu trải: <strong className="text-purple-deep/60">{selectedSpread.name}</strong> · {selectedSpread.cardCount} lá · Thần Bài giải mã <strong className="text-purple-deep/60">{getAiReadCost(selectedSpread.cardCount)} xu</strong>
-                  </span>
-                </div>
-              </div>
-
-              {/* Reader picker */}
-              <ReaderPicker selectedId={selectedReaderId} onChange={setSelectedReaderId} />
-
-              {/* Question input */}
-              <div className="w-full max-w-xl">
-                <h2 className="font-display font-bold text-purple-deep text-xl mb-3 text-center">
-                  Muốn hỏi cụ thể không? <span className="text-purple-deep/40 text-base font-normal">(không bắt buộc)</span>
-                </h2>
-                <div className="relative">
-                  <textarea
-                    value={userQuestion}
-                    onChange={(e) => setUserQuestion(e.target.value)}
-                    placeholder="VD: Crush có thích mình không? Tháng này có nên nhảy việc không?..."
-                    maxLength={200}
-                    rows={3}
-                    className="w-full rounded-2xl px-5 py-4 font-body text-base text-purple-deep placeholder-purple-deep/30 outline-none resize-none border-2 transition-all"
-                    style={{
-                      background: "rgba(255,255,255,0.6)",
-                      borderColor: userQuestion ? "rgba(167,139,250,0.6)" : "rgba(255,255,255,0.6)",
-                      backdropFilter: "blur(8px)",
-                    }}
-                  />
-                  <div className="absolute bottom-3 right-4 font-body text-xs text-purple-deep/30">
-                    {userQuestion.length}/200
-                  </div>
-                </div>
-                {userQuestion && (
-                  <motion.p className="text-center text-sm font-body text-purple-mid mt-2"
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    ✨ Thần Bài sẽ giải mã tập trung vào câu hỏi của bạn!
-                  </motion.p>
+                  </motion.div>
                 )}
-              </div>
 
-              <motion.button
-                onClick={() => {
-                  const saved = getUserInfo();
-                  if (!saved) {
-                    setShowBirthModal(true);
-                  } else {
-                    setUserInfo(saved);
-                    setPhase("shuffle");
-                  }
-                }}
-                className="px-14 py-5 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-xl shadow-2xl"
-                whileHover={{ scale: 1.05, y: -3 }}
-                whileTap={{ scale: 0.97 }}
-                animate={{
-                  boxShadow: [
-                    "0 10px 40px rgba(123,79,166,0.3)",
-                    "0 10px 60px rgba(232,115,154,0.5)",
-                    "0 10px 40px rgba(123,79,166,0.3)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                🎴 Xào bài — bắt đầu thôi!
-              </motion.button>
+                {/* ── STEP 2: Kiểu trải + Reader ── */}
+                {setupStep === 2 && (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -24 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col items-center gap-8 w-full"
+                  >
+                    <div className="text-center">
+                      <h1 className="font-display text-4xl sm:text-5xl font-bold text-purple-deep">
+                        Chọn cách trải bài 🃏
+                      </h1>
+                      <p className="font-body text-purple-deep/60 mt-2 text-base">
+                        {themeInfo?.emoji} {themeInfo?.name}
+                        {userQuestion && <span className="ml-2 italic opacity-70">· &ldquo;{userQuestion.slice(0, 30)}{userQuestion.length > 30 ? "…" : ""}&rdquo;</span>}
+                      </p>
+                    </div>
+
+                    {/* Spread picker */}
+                    <div className="w-full max-w-2xl">
+                      <h2 className="font-display font-bold text-purple-deep text-xl mb-4 text-center">
+                        Kiểu trải bài
+                      </h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {SPREADS.map((spread) => (
+                          <motion.button
+                            key={spread.id}
+                            onClick={() => setSelectedSpread(spread)}
+                            className={`relative rounded-2xl p-4 flex flex-col items-start gap-1.5 border-2 transition-all font-body text-left ${
+                              selectedSpread.id === spread.id
+                                ? "border-purple-mid bg-lavender/60 shadow-lg"
+                                : "border-white/50 glass hover:border-purple-mid/40"
+                            }`}
+                            whileHover={{ scale: 1.04, y: -2 }}
+                            whileTap={{ scale: 0.97 }}
+                          >
+                            {spread.badge && (
+                              <span className="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-mid/15 text-purple-mid leading-none">
+                                {spread.badge}
+                              </span>
+                            )}
+                            <span className="text-2xl">{spread.emoji}</span>
+                            <span className="text-sm font-bold text-purple-deep leading-snug">{spread.name}</span>
+                            <span className="text-[11px] text-purple-deep/50 leading-snug">{spread.desc}</span>
+                            <span className="text-[11px] font-semibold text-purple-mid/70 mt-0.5">
+                              {spread.cardCount} lá · {getAiReadCost(spread.cardCount)} xu
+                            </span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Reader picker */}
+                    <ReaderPicker selectedId={selectedReaderId} onChange={setSelectedReaderId} />
+
+                    {/* Cost summary */}
+                    <div className="flex flex-col items-center gap-1">
+                      <FreeLabel />
+                      <span className="text-xs font-body text-purple-deep/40">
+                        {selectedSpread.name} · {selectedSpread.cardCount} lá · Thần Bài giải mã{" "}
+                        <strong className="text-purple-deep/60">{getAiReadCost(selectedSpread.cardCount)} xu</strong>
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-3 w-full max-w-xs">
+                      <motion.button
+                        onClick={() => {
+                          const saved = getUserInfo();
+                          if (!saved) {
+                            setShowBirthModal(true);
+                          } else {
+                            setUserInfo(saved);
+                            setPhase("shuffle");
+                          }
+                        }}
+                        className="w-full py-5 rounded-full bg-gradient-to-r from-purple-deep to-pink-soft text-white font-body font-bold text-xl shadow-2xl"
+                        whileHover={{ scale: 1.04, y: -2 }}
+                        whileTap={{ scale: 0.97 }}
+                        animate={{
+                          boxShadow: [
+                            "0 10px 40px rgba(123,79,166,0.3)",
+                            "0 10px 60px rgba(232,115,154,0.5)",
+                            "0 10px 40px rgba(123,79,166,0.3)",
+                          ],
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        🎴 Xào bài — bắt đầu thôi!
+                      </motion.button>
+                      <button
+                        onClick={() => setSetupStep(1)}
+                        className="text-sm font-body text-purple-deep/40 hover:text-purple-deep/70 transition-colors"
+                      >
+                        ← Quay lại
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
@@ -728,43 +880,72 @@ function ReadingPageInner() {
               </div>
 
               {/* SLOTS */}
-              <div className="flex justify-center gap-4 sm:gap-6 flex-wrap px-4">
+              <div className={`flex justify-center gap-3 sm:gap-4 flex-wrap px-4 ${selectedCount === 7 ? "max-w-2xl" : ""}`}>
                 {(selectedSpread.positions ?? Array.from({ length: selectedCount }, (_, i) => `Lá ${i + 1}`)).map((label, i) => {
-                  const isRevealed = revealedCards.has(i);
+                  const isPicked = revealedCards.has(i);
+                  const isFlipped = ceremonyFlipped.has(i);
                   const card = cards[i];
                   return (
                     <motion.div key={i} className="flex flex-col items-center gap-2"
                       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}>
-                      <p className="font-body font-bold text-xs tracking-widest uppercase"
-                        style={{ color: isRevealed ? "rgba(212,168,71,0.9)" : "rgba(180,140,60,0.5)" }}>
+                      transition={{ delay: i * 0.08 }}>
+                      <p className="font-body font-bold text-[10px] tracking-widest uppercase text-center max-w-[80px]"
+                        style={{ color: isFlipped ? "rgba(212,168,71,0.95)" : isPicked ? "rgba(212,168,71,0.55)" : "rgba(180,140,60,0.4)" }}>
                         {label}
                       </p>
-                      <div className="relative w-28 h-44 rounded-xl overflow-hidden"
+                      <div className="relative w-[72px] h-[112px] sm:w-[80px] sm:h-[128px] rounded-xl overflow-hidden"
                         style={{
-                          border: isRevealed
-                            ? "1.5px solid rgba(212,168,71,0.7)"
-                            : "1.5px dashed rgba(180,140,60,0.35)",
-                          background: isRevealed ? "transparent" : "rgba(255,255,255,0.02)",
+                          border: isFlipped
+                            ? "1.5px solid rgba(212,168,71,0.8)"
+                            : isPicked
+                            ? "1.5px solid rgba(180,140,60,0.5)"
+                            : "1.5px dashed rgba(180,140,60,0.3)",
                         }}>
-                        {isRevealed && card ? (
+
+                        {/* Empty slot */}
+                        {!isPicked && (
+                          <div className="w-full h-full flex items-center justify-center"
+                            style={{ background: "rgba(255,255,255,0.02)" }}>
+                            <span style={{ color: "rgba(180,140,60,0.2)", fontSize: 22 }}>?</span>
+                          </div>
+                        )}
+
+                        {/* Picked, not yet flipped — card back */}
+                        {isPicked && !isFlipped && (
                           <motion.div className="w-full h-full"
                             initial={{ rotateY: 90, opacity: 0 }}
                             animate={{ rotateY: 0, opacity: 1 }}
-                            transition={{ duration: 0.5 }}>
+                            transition={{ duration: 0.35 }}>
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-1"
+                              style={{ background: "linear-gradient(160deg,#1a0533 0%,#2d0a52 55%,#0f0220 100%)" }}>
+                              <div className="text-amber-400/50" style={{ fontSize: 18 }}>☽</div>
+                              <div className="flex gap-0.5">
+                                {["✦","·","✦"].map((s, j) => (
+                                  <span key={j} className="text-amber-500/20" style={{ fontSize: 6 }}>{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* Flipped — card face */}
+                        {isPicked && isFlipped && card && (
+                          <motion.div className="w-full h-full"
+                            initial={{ rotateY: 90, opacity: 0 }}
+                            animate={{ rotateY: 0, opacity: 1 }}
+                            transition={{ duration: 0.5, type: "spring", stiffness: 180, damping: 20 }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={getCardImageUrl(card)} alt={card.nameVi}
                               className="w-full h-full object-cover"
                               style={{ transform: card.isReversed ? "rotate(180deg)" : "none" }} />
                             <div className="absolute bottom-0 inset-x-0 py-1.5 px-1 text-center"
-                              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)" }}>
-                              <p className="text-white font-body font-bold text-[10px]">{card.nameVi}</p>
+                              style={{ background: "linear-gradient(to top,rgba(0,0,0,0.88),transparent)" }}>
+                              <p className="text-white font-body font-bold" style={{ fontSize: 9 }}>{card.nameVi}</p>
+                              {card.isReversed && (
+                                <p style={{ fontSize: 7, color: "rgba(253,186,116,0.8)" }}>↕ Ngược</p>
+                              )}
                             </div>
                           </motion.div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="font-body text-2xl" style={{ color: "rgba(180,140,60,0.25)" }}>?</span>
-                          </div>
                         )}
                       </div>
                     </motion.div>
@@ -773,11 +954,18 @@ function ReadingPageInner() {
               </div>
 
               {/* Progress */}
-              <p className="font-body text-sm" style={{ color: "rgba(212,168,71,0.6)" }}>
-                {revealedCards.size} / {selectedCount} lá đã chọn
+              <p className="font-body text-sm" style={{ color: "rgba(212,168,71,0.55)" }}>
+                {!allRevealed
+                  ? `${revealedCards.size} / ${selectedCount} lá đã chọn`
+                  : allCeremonyDone
+                  ? `✦ ${selectedCount} lá đã lật`
+                  : ceremonyFlipped.size > 0
+                  ? `Đang lật bài... ${ceremonyFlipped.size} / ${selectedCount}`
+                  : "Tất cả lá đã chọn ✦"
+                }
               </p>
 
-              {/* Card spread */}
+              {/* Card spread picker */}
               {!allRevealed && (
                 <motion.div className="w-full" initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
@@ -789,19 +977,49 @@ function ReadingPageInner() {
                 </motion.div>
               )}
 
-              {/* Done — show reading button */}
-              {allRevealed && (
+              {/* CTA: Lật bài (ceremony) */}
+              {allRevealed && ceremonyFlipped.size === 0 && (
                 <motion.div className="flex flex-col items-center gap-4 mt-2"
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
                   <p className="font-body text-base text-center" style={{ color: "rgba(232,213,163,0.7)" }}>
-                    Tất cả lá đã chọn ✦ Để Thần Bài giải mã cho bạn nhé?
+                    Đã chọn đủ {selectedCount} lá ✦ Sẵn sàng lật bài chưa?
+                  </p>
+                  <motion.button onClick={handleRevealCeremony}
+                    className="flex items-center gap-3 px-12 py-4 rounded-full font-body font-bold text-lg"
+                    style={{ background: "linear-gradient(135deg,#d4a847,#f0c060,#b8860b)", color: "#1a0e00" }}
+                    whileHover={{ scale: 1.06 }}
+                    whileTap={{ scale: 0.97 }}
+                    animate={{ boxShadow: ["0 0 18px rgba(212,168,71,0.3)","0 0 40px rgba(212,168,71,0.65)","0 0 18px rgba(212,168,71,0.3)"] }}
+                    transition={{ duration: 1.8, repeat: Infinity }}>
+                    ✦ Lật bài!
+                  </motion.button>
+                </motion.div>
+              )}
+
+              {/* Mid-ceremony animation hint */}
+              {allRevealed && ceremonyFlipped.size > 0 && !allCeremonyDone && (
+                <motion.p className="font-body text-sm"
+                  style={{ color: "rgba(212,168,71,0.65)" }}
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1.2, repeat: Infinity }}>
+                  ✦ Đang lật bài...
+                </motion.p>
+              )}
+
+              {/* CTA: Thần Bài giải mã — after all flipped */}
+              {allCeremonyDone && (
+                <motion.div className="flex flex-col items-center gap-4 mt-2"
+                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}>
+                  <p className="font-body text-base text-center" style={{ color: "rgba(232,213,163,0.75)" }}>
+                    Bài đã lật xong ✦ Để Thần Bài giải mã cho bạn nhé?
                   </p>
                   <motion.button onClick={handleGetReading}
                     className="flex items-center gap-3 px-12 py-4 rounded-full font-body font-bold text-base"
-                    style={{ background: "linear-gradient(135deg, #d4a847, #f0c060, #b8860b)", color: "#1a0e00" }}
+                    style={{ background: "linear-gradient(135deg,#d4a847,#f0c060,#b8860b)", color: "#1a0e00" }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
-                    animate={{ boxShadow: ["0 0 20px rgba(212,168,71,0.3)", "0 0 40px rgba(212,168,71,0.6)", "0 0 20px rgba(212,168,71,0.3)"] }}
+                    animate={{ boxShadow: ["0 0 20px rgba(212,168,71,0.3)","0 0 45px rgba(212,168,71,0.65)","0 0 20px rgba(212,168,71,0.3)"] }}
                     transition={{ duration: 2, repeat: Infinity }}>
                     ✦ Thần Bài giải mã cho mình · {getAiReadCost(selectedCount)} xu
                   </motion.button>
@@ -936,7 +1154,13 @@ function ReadingPageInner() {
                   )}
 
                   {readingText && (
-                    <TarotMarkdown text={readingText} streaming={aiStreaming} />
+                    <TarotMarkdown
+                      text={readingText}
+                      streaming={aiStreaming}
+                      cards={cards}
+                      positions={selectedSpread.positions}
+                      onZoom={(c) => setZoomedCard(c)}
+                    />
                   )}
                 </div>
               </motion.div>
