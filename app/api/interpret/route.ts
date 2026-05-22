@@ -47,13 +47,22 @@ export async function POST(request: NextRequest) {
     const genderLine = userInfo?.gender    ? `Giới tính: ${genderMap[userInfo.gender] ?? userInfo.gender}` : "";
     const infoBlock  = [userLine, birthLine, genderLine].filter(Boolean).join("\n");
 
+    const positionList = positions.length > 0
+      ? `Các vị trí: ${positions.join(" · ")}`
+      : "";
+
+    const formatInstruction = positions.length > 1
+      ? `\nĐịnh dạng bắt buộc: dùng "### {tên vị trí}" (ví dụ: ### ${positions[0]}) làm heading cho mỗi lá bài — đúng tên vị trí, không đánh số, không thêm tên bài vào heading.`
+      : "";
+
     const userMessage = `${infoBlock ? infoBlock + "\n" : ""}Chủ đề: ${themeNames[theme] || "Tổng Quát"}
 Kiểu trải bài: ${spreadType || `${cards.length} lá`}
-${question ? `Câu hỏi: "${question}"\n` : ""}
+${positionList}${question ? `\nCâu hỏi: "${question}"` : ""}
+
 Các lá bài (theo vị trí):
 ${cardDescriptions}
-
-Hãy đọc trải bài "${spreadType || ""}" này. Phân tích từng lá theo đúng vị trí của nó.${question ? ` Trả lời trực tiếp câu hỏi: "${question}".` : ""}${infoBlock ? " Cá nhân hoá phân tích cho người dùng nếu có thể." : ""}`;
+${formatInstruction}
+Hãy đọc trải bài "${spreadType || ""}" này, phân tích từng lá theo đúng vị trí.${question ? ` Trả lời trực tiếp câu hỏi: "${question}".` : ""}${infoBlock ? " Cá nhân hoá phân tích cho người dùng nếu có thể." : ""}`;
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

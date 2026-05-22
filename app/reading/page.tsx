@@ -157,7 +157,10 @@ function TarotMarkdown({
 }) {
   const lines = text.split("\n");
   const nodes: React.ReactNode[] = [];
-  let posIndex = 0; // tracks which ### heading we're on (maps to spread position)
+
+  // Strip diacritics for fuzzy Vietnamese matching
+  const strip = (s: string) =>
+    s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
   lines.forEach((line, i) => {
     const isLast = i === lines.length - 1;
@@ -168,9 +171,15 @@ function TarotMarkdown({
       return;
     }
     if (line.startsWith("### ")) {
-      const matchedCard = cards && positions && posIndex < positions.length ? cards[posIndex] : null;
-      const matchedPosition = positions?.[posIndex];
-      posIndex++;
+      // Match heading to position by text content (not sequential counter)
+      const heading = line.slice(4).trim();
+      const strippedHeading = strip(heading);
+      const matchedIndex =
+        positions && cards
+          ? positions.findIndex((p) => strippedHeading.includes(strip(p)))
+          : -1;
+      const matchedCard = matchedIndex >= 0 ? cards![matchedIndex] : null;
+      const matchedPosition = matchedIndex >= 0 ? positions![matchedIndex] : null;
 
       nodes.push(
         <div key={i} className="mt-7 mb-2">
