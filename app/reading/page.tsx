@@ -23,20 +23,90 @@ import { getReader } from "@/data/tarotReaders";
 type Phase = "setup" | "shuffle" | "drawing" | "revealing" | "reading" | "chat";
 
 const THEMES = [
-  { id: "general", emoji: "🔮", name: "Tổng Quát" },
-  { id: "love", emoji: "💕", name: "Tình Yêu" },
-  { id: "career", emoji: "💼", name: "Sự Nghiệp" },
-  { id: "finance", emoji: "💰", name: "Tài Chính" },
-  { id: "self", emoji: "🌸", name: "Bản Thân" },
+  { id: "general",  emoji: "🔮", name: "Tổng Quát" },
+  { id: "love",     emoji: "💕", name: "Tình Yêu" },
+  { id: "career",   emoji: "💼", name: "Sự Nghiệp" },
+  { id: "finance",  emoji: "💰", name: "Tài Chính" },
+  { id: "self",     emoji: "🌸", name: "Bản Thân" },
+  { id: "health",   emoji: "🌿", name: "Sức Khỏe" },
+  { id: "family",   emoji: "🏠", name: "Gia Đình" },
+  { id: "decision", emoji: "🎯", name: "Quyết Định" },
+  { id: "energy",   emoji: "📅", name: "Năng Lượng Tuần" },
+  { id: "spirit",   emoji: "✨", name: "Tâm Linh" },
 ];
 
-const CARD_COUNTS = [1, 3, 5];
+interface Spread {
+  id: string;
+  emoji: string;
+  name: string;
+  desc: string;
+  cardCount: number;
+  positions: string[];
+  badge?: string; // "Phổ biến" | "Mới" | "Sâu nhất"
+}
 
-const SLOT_LABELS: Record<number, string[]> = {
-  1: ["Thông Điệp"],
-  3: ["Quá Khứ", "Hiện Tại", "Tương Lai"],
-  5: ["Tình Huống", "Thách Thức", "Quá Khứ", "Tương Lai", "Kết Quả"],
-};
+const SPREADS: Spread[] = [
+  {
+    id: "daily",
+    emoji: "🌙",
+    name: "Lá Bài Ngày",
+    desc: "Thông điệp vũ trụ hôm nay",
+    cardCount: 1,
+    positions: ["Thông Điệp Hôm Nay"],
+    badge: "Nhanh nhất",
+  },
+  {
+    id: "timeline",
+    emoji: "⏳",
+    name: "Dòng Chảy Thời Gian",
+    desc: "Quá khứ · Hiện tại · Tương lai",
+    cardCount: 3,
+    positions: ["Quá Khứ", "Hiện Tại", "Tương Lai"],
+    badge: "Phổ biến",
+  },
+  {
+    id: "relationship",
+    emoji: "💞",
+    name: "Góc Nhìn Đôi Bên",
+    desc: "Tôi · Họ · Chúng ta",
+    cardCount: 3,
+    positions: ["Bạn", "Họ", "Mối Quan Hệ"],
+  },
+  {
+    id: "decision",
+    emoji: "🎯",
+    name: "Ra Quyết Định",
+    desc: "Tình huống · Hành động · Kết quả",
+    cardCount: 3,
+    positions: ["Tình Huống", "Hành Động Nên Làm", "Kết Quả"],
+  },
+  {
+    id: "five-elements",
+    emoji: "🌿",
+    name: "Năm Yếu Tố",
+    desc: "Thể xác · Cảm xúc · Tâm trí · Linh hồn · Tổng hợp",
+    cardCount: 5,
+    positions: ["Thể Xác", "Cảm Xúc", "Tâm Trí", "Linh Hồn", "Tổng Hợp"],
+  },
+  {
+    id: "celtic-mini",
+    emoji: "🔮",
+    name: "Celtic Mini",
+    desc: "Vấn đề · Cản trở · Nền tảng · Tiềm năng · Kết quả",
+    cardCount: 5,
+    positions: ["Vấn Đề Cốt Lõi", "Điều Cản Trở", "Nền Tảng", "Tiềm Năng Tốt Nhất", "Kết Quả"],
+    badge: "Sâu nhất",
+  },
+  {
+    id: "weekly",
+    emoji: "📅",
+    name: "Forecast Tuần",
+    desc: "Năng lượng từng ngày trong tuần",
+    cardCount: 7,
+    positions: ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"],
+    badge: "Mới",
+  },
+];
 
 // ── Inline markdown → styled JSX ──────────────────────────────────────────────
 function parseInline(text: string, key: string): React.ReactNode {
@@ -147,7 +217,7 @@ function ReadingPageInner() {
 
   const [phase, setPhase] = useState<Phase>("setup");
   const [selectedTheme, setSelectedTheme] = useState(initialTheme);
-  const [selectedCount, setSelectedCount] = useState(3);
+  const [selectedSpread, setSelectedSpread] = useState<Spread>(SPREADS[1]); // default: Dòng Chảy Thời Gian
   const [cards, setCards] = useState<TarotCardType[]>([]);
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
   const [zoomedCard, setZoomedCard] = useState<TarotCardType | null>(null);
@@ -165,11 +235,12 @@ function ReadingPageInner() {
       try {
         const saved = sessionStorage.getItem("tarot-pending");
         if (saved) {
-          const { cards: savedCards, revealedIndices, theme, count } = JSON.parse(saved);
+          const { cards: savedCards, revealedIndices, theme, spreadId } = JSON.parse(saved);
           setCards(savedCards);
           setRevealedCards(new Set<number>(revealedIndices));
           setSelectedTheme(theme);
-          setSelectedCount(count);
+          const restoredSpread = SPREADS.find((s) => s.id === spreadId) ?? SPREADS[1];
+          setSelectedSpread(restoredSpread);
           setPhase("revealing"); // all cards already face-up, ready for AI
           sessionStorage.removeItem("tarot-pending");
         }
@@ -179,12 +250,12 @@ function ReadingPageInner() {
 
   // Rút bài luôn miễn phí — không tốn xu, không giới hạn
   const handleDraw = useCallback(() => {
-    const drawn = getRandomCards(selectedCount);
+    const drawn = getRandomCards(selectedSpread.cardCount);
     setCards(drawn);
     setRevealedCards(new Set());
     setReadingText("");
     setPhase("drawing");
-  }, [selectedCount]);
+  }, [selectedSpread.cardCount]);
 
   // User picks a card from the spread → reveals next slot
   const handleCardPick = useCallback(() => {
@@ -218,14 +289,14 @@ function ReadingPageInner() {
           cards,
           revealedIndices: Array.from(revealedCards),
           theme: selectedTheme,
-          count: selectedCount,
+          spreadId: selectedSpread.id,
         })
       );
       setShowLoginPrompt(true);
       return;
     }
     // Check coins for AI reading (giá theo số lá)
-    const aiCost = getAiReadCost(selectedCount);
+    const aiCost = getAiReadCost(selectedSpread.cardCount);
     if (coins < aiCost) {
       router.push("/coins");
       return;
@@ -253,6 +324,8 @@ function ReadingPageInner() {
           theme: selectedTheme,
           question: userQuestion,
           readerId: selectedReaderId,
+          spreadType: selectedSpread.name,
+          spreadPositions: selectedSpread.positions,
           userInfo: userInfo?.name || userInfo?.birthdate || userInfo?.gender ? {
             name: userInfo.name,
             birthdate: userInfo.birthdate,
@@ -320,6 +393,7 @@ function ReadingPageInner() {
     setReadingText("");
   };
 
+  const selectedCount = selectedSpread.cardCount;
   const allRevealed = cards.length > 0 && revealedCards.size === cards.length;
   const themeInfo = THEMES.find((t) => t.id === selectedTheme);
   const isDark = phase === "shuffle" || phase === "drawing";
@@ -472,7 +546,7 @@ function ReadingPageInner() {
                   Vũ trụ nhắn gì hôm nay? 🔮
                 </h1>
                 <p className="font-body text-purple-deep/60 mt-3 text-base">
-                  Chọn chủ đề và số lá — Thần Bài sẽ giải mã cho bạn 🌙
+                  Chọn chủ đề &amp; kiểu trải bài — Thần Bài sẽ giải mã cho bạn 🌙
                 </p>
               </div>
 
@@ -501,42 +575,42 @@ function ReadingPageInner() {
                 </div>
               </div>
 
-              {/* Card count */}
-              <div className="w-full max-w-md">
+              {/* Spread picker */}
+              <div className="w-full max-w-2xl">
                 <h2 className="font-display font-bold text-purple-deep text-xl mb-5 text-center">
-                  Muốn đọc sâu cỡ nào? 🃏
+                  Chọn kiểu trải bài 🃏
                 </h2>
-                <div className="flex justify-center gap-4">
-                  {CARD_COUNTS.map((count) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {SPREADS.map((spread) => (
                     <motion.button
-                      key={count}
-                      onClick={() => setSelectedCount(count)}
-                      className={`w-24 h-24 rounded-2xl flex flex-col items-center justify-center gap-1 border-2 transition-all font-body ${
-                        selectedCount === count
+                      key={spread.id}
+                      onClick={() => setSelectedSpread(spread)}
+                      className={`relative rounded-2xl p-4 flex flex-col items-start gap-1.5 border-2 transition-all font-body text-left ${
+                        selectedSpread.id === spread.id
                           ? "border-purple-mid bg-lavender/60 shadow-lg"
                           : "border-white/50 glass hover:border-purple-mid/40"
                       }`}
-                      whileHover={{ scale: 1.08, y: -3 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.04, y: -2 }}
+                      whileTap={{ scale: 0.97 }}
                     >
-                      <span className="text-3xl font-display font-bold text-purple-deep">
-                        {count}
-                      </span>
-                      <span className="text-xs text-purple-deep/60 font-semibold">
-                        {count === 1 ? "lá bài" : "lá bài"}
+                      {spread.badge && (
+                        <span className="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-mid/15 text-purple-mid leading-none">
+                          {spread.badge}
+                        </span>
+                      )}
+                      <span className="text-2xl">{spread.emoji}</span>
+                      <span className="text-sm font-bold text-purple-deep leading-snug">{spread.name}</span>
+                      <span className="text-[11px] text-purple-deep/50 leading-snug">{spread.desc}</span>
+                      <span className="text-[11px] font-semibold text-purple-mid/70 mt-0.5">
+                        {spread.cardCount} lá · {getAiReadCost(spread.cardCount)} xu
                       </span>
                     </motion.button>
                   ))}
                 </div>
-                <p className="text-center text-sm font-body text-purple-deep/50 mt-4">
-                  {selectedCount === 1 && "1 lá — nhanh, gọn, thẳng vào vấn đề 🎯"}
-                  {selectedCount === 3 && "3 lá — Quá khứ · Hiện tại · Tương lai 🌙"}
-                  {selectedCount === 5 && "5 lá — đọc chi tiết nhất, không bỏ sót gì ✨"}
-                </p>
-                <div className="text-center mt-2 flex flex-col items-center gap-1">
+                <div className="text-center mt-4 flex flex-col items-center gap-1">
                   <FreeLabel />
                   <span className="text-xs font-body text-purple-deep/40">
-                    Thần Bài giải mã tốn <strong className="text-purple-deep/60">{getAiReadCost(selectedCount)} xu</strong> · Hỏi thêm tốn <strong className="text-purple-deep/60">1 xu/tin</strong>
+                    Kiểu trải: <strong className="text-purple-deep/60">{selectedSpread.name}</strong> · {selectedSpread.cardCount} lá · Thần Bài giải mã <strong className="text-purple-deep/60">{getAiReadCost(selectedSpread.cardCount)} xu</strong>
                   </span>
                 </div>
               </div>
@@ -617,7 +691,7 @@ function ReadingPageInner() {
                   Thở đều · Tập trung · Rút bài 🌙
                 </h2>
                 <p className="font-body text-base mt-2" style={{ color: "rgba(232,213,163,0.6)" }}>
-                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá · {activeReader.emoji} {activeReader.name}
+                  {themeInfo?.emoji} {themeInfo?.name} · {selectedSpread.emoji} {selectedSpread.name} · {activeReader.emoji} {activeReader.name}
                 </p>
               </div>
 
@@ -634,8 +708,11 @@ function ReadingPageInner() {
               <div className="text-center px-4">
                 <h2 className="font-display text-2xl sm:text-3xl font-bold"
                   style={{ color: "#e8d5a3", textShadow: "0 0 20px rgba(212,168,71,0.3)" }}>
-                  Chọn {selectedCount} lá bài
+                  {selectedSpread.emoji} {selectedSpread.name}
                 </h2>
+                <p className="font-body text-sm mt-1" style={{ color: "rgba(212,168,71,0.6)" }}>
+                  {selectedSpread.desc}
+                </p>
                 {userQuestion ? (
                   <div className="mt-2 mx-auto max-w-sm px-4 py-2 rounded-xl"
                     style={{ background: "rgba(212,168,71,0.1)", border: "1px solid rgba(212,168,71,0.25)" }}>
@@ -652,7 +729,7 @@ function ReadingPageInner() {
 
               {/* SLOTS */}
               <div className="flex justify-center gap-4 sm:gap-6 flex-wrap px-4">
-                {(SLOT_LABELS[selectedCount] ?? Array.from({ length: selectedCount }, (_, i) => `Lá ${i + 1}`)).map((label, i) => {
+                {(selectedSpread.positions ?? Array.from({ length: selectedCount }, (_, i) => `Lá ${i + 1}`)).map((label, i) => {
                   const isRevealed = revealedCards.has(i);
                   const card = cards[i];
                   return (
@@ -742,7 +819,7 @@ function ReadingPageInner() {
                   Bài của bạn 🌟
                 </h2>
                 <p className="font-body text-purple-deep/60 text-base mt-2">
-                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
+                  {themeInfo?.emoji} {themeInfo?.name} · {selectedSpread.emoji} {selectedSpread.name} · {selectedCount} lá
                 </p>
               </div>
               <div className={`flex flex-wrap justify-center gap-4 sm:gap-6 ${cards.length === 5 ? "max-w-2xl" : ""}`}>
@@ -774,10 +851,10 @@ function ReadingPageInner() {
               {/* Cards small view */}
               <motion.div className="text-center" layout>
                 <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-deep">
-                  {aiStreaming ? "AI đang đọc bài... 🔮" : "Kết quả của bestie 🌟"}
+                  {aiStreaming ? "Thần Bài đang giải mã... 🔮" : "Kết quả của bestie 🌟"}
                 </h2>
                 <p className="font-body text-purple-deep/60 text-base mt-2">
-                  {themeInfo?.emoji} {themeInfo?.name} · {selectedCount} lá bài
+                  {themeInfo?.emoji} {themeInfo?.name} · {selectedSpread.emoji} {selectedSpread.name}
                 </p>
               </motion.div>
 
@@ -830,7 +907,7 @@ function ReadingPageInner() {
                   <div>
                     <p className="font-display font-bold text-purple-deep text-lg leading-none">{activeReader.name}</p>
                     <p className="font-body text-purple-deep/45 text-xs mt-0.5">
-                      {themeInfo?.emoji} {themeInfo?.name} · {cards.length} lá bài
+                      {themeInfo?.emoji} {themeInfo?.name} · {selectedSpread.emoji} {selectedSpread.name}
                     </p>
                   </div>
                   {aiStreaming && (

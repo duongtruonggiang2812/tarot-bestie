@@ -6,7 +6,7 @@ import { getReader } from "@/data/tarotReaders";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { cards, theme, spreadType, question, userInfo, readerId } = body;
+    const { cards, theme, spreadType, spreadPositions, question, userInfo, readerId } = body;
     const reader = getReader(readerId ?? "mystic");
     const SYSTEM_PROMPT = reader.interpretPrompt;
 
@@ -23,14 +23,21 @@ export async function POST(request: NextRequest) {
       finance: "Tài Chính 💰",
       self: "Bản Thân 🌸",
       general: "Tổng Quát 🔮",
+      health: "Sức Khỏe 🌿",
+      family: "Gia Đình 🏠",
+      decision: "Quyết Định 🎯",
+      energy: "Năng Lượng Tuần 📅",
+      spirit: "Tâm Linh ✨",
     };
+
+    const positions: string[] = Array.isArray(spreadPositions) ? spreadPositions : [];
 
     const cardDescriptions = cards
       .map((card: { nameVi: string; name: string; isReversed: boolean; uprightMeaning: string; reversedMeaning: string; position?: string }, index: number) => {
         const direction = card.isReversed ? "ngược" : "xuôi";
         const meaning = card.isReversed ? card.reversedMeaning : card.uprightMeaning;
-        const position = card.position ? `Vị trí: ${card.position}` : `Lá ${index + 1}`;
-        return `${position} - ${card.nameVi} (${card.name}) [${direction}]: ${meaning}`;
+        const posLabel = card.position ?? positions[index] ?? `Lá ${index + 1}`;
+        return `[${posLabel}] ${card.nameVi} (${card.name}) [${direction}]: ${meaning}`;
       })
       .join("\n");
 
@@ -41,12 +48,12 @@ export async function POST(request: NextRequest) {
     const infoBlock  = [userLine, birthLine, genderLine].filter(Boolean).join("\n");
 
     const userMessage = `${infoBlock ? infoBlock + "\n" : ""}Chủ đề: ${themeNames[theme] || "Tổng Quát"}
-Số lá: ${spreadType || cards.length}
+Kiểu trải bài: ${spreadType || `${cards.length} lá`}
 ${question ? `Câu hỏi: "${question}"\n` : ""}
-Các lá bài:
+Các lá bài (theo vị trí):
 ${cardDescriptions}
 
-Hãy đọc trải bài này.${question ? ` Trả lời trực tiếp câu hỏi: "${question}".` : ""}${infoBlock ? " Cá nhân hoá phân tích cho người dùng nếu có thể." : ""}`;
+Hãy đọc trải bài "${spreadType || ""}" này. Phân tích từng lá theo đúng vị trí của nó.${question ? ` Trả lời trực tiếp câu hỏi: "${question}".` : ""}${infoBlock ? " Cá nhân hoá phân tích cho người dùng nếu có thể." : ""}`;
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
