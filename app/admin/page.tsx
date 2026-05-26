@@ -11,7 +11,15 @@ interface User {
   name: string | null;
   avatar: string | null;
   coins: number;
+  coins_spent: number;
+  readings_count: number;
+  last_active: string | null;
   created_at: string;
+}
+
+interface Summary {
+  total_readings: number;
+  active_users_7d: number;
 }
 
 interface BlogPost {
@@ -29,7 +37,7 @@ interface BlogPost {
   updated_at: string;
 }
 
-interface ApiResponse { users: User[]; total: number; page: number; limit: number; }
+interface ApiResponse { users: User[]; total: number; page: number; limit: number; summary?: Summary; }
 
 const EMOJI_OPTIONS = ["🔮","🃏","💕","💼","💰","🌙","✨","🌸","🧿","⭐","🌟","💜"];
 
@@ -59,6 +67,7 @@ export default function AdminPage() {
   // ── Users state ────────────────────────────────────────────────────────────
   const [users, setUsers]       = useState<User[]>([]);
   const [total, setTotal]       = useState(0);
+  const [summary, setSummary]   = useState<Summary>({ total_readings: 0, active_users_7d: 0 });
   const [page, setPage]         = useState(1);
   const [search, setSearch]     = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -98,6 +107,7 @@ export default function AdminPage() {
       const data: ApiResponse = await res.json();
       setUsers(data.users ?? []);
       setTotal(data.total ?? 0);
+      if (data.summary) setSummary(data.summary);
     } finally { setLoadingUsers(false); }
   }, [page, search]);
 
@@ -245,18 +255,26 @@ export default function AdminPage() {
         {/* ══ USERS TAB ══════════════════════════════════════════════════════ */}
         {tab==="users" && (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                 <p className="text-gray-400 text-sm">Tổng users</p>
                 <p className="text-3xl font-bold text-gray-800 mt-1">{total}</p>
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                <p className="text-gray-400 text-sm">Xu (trang này)</p>
+                <p className="text-gray-400 text-sm">Active 7 ngày</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{summary.active_users_7d}</p>
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <p className="text-gray-400 text-sm">Tổng readings</p>
+                <p className="text-3xl font-bold text-blue-600 mt-1">{summary.total_readings.toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <p className="text-gray-400 text-sm">Xu đang giữ</p>
                 <p className="text-3xl font-bold text-purple-600 mt-1">{users.reduce((s,u)=>s+u.coins,0).toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 col-span-2 sm:col-span-1">
-                <p className="text-gray-400 text-sm">Đang xem</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">Trang {page}/{totalPages||1}</p>
+                <p className="text-gray-400 text-sm">Xu đã tiêu (trang)</p>
+                <p className="text-3xl font-bold text-amber-600 mt-1">{users.reduce((s,u)=>s+(u.coins_spent??0),0).toLocaleString()}</p>
               </div>
             </div>
 
@@ -276,10 +294,13 @@ export default function AdminPage() {
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
                       <th className="text-left px-5 py-3.5 text-gray-500 font-semibold">Người dùng</th>
-                      <th className="text-left px-5 py-3.5 text-gray-500 font-semibold">Email</th>
-                      <th className="text-center px-5 py-3.5 text-gray-500 font-semibold">Xu 🪙</th>
-                      <th className="text-left px-5 py-3.5 text-gray-500 font-semibold">Ngày tham gia</th>
-                      <th className="text-center px-5 py-3.5 text-gray-500 font-semibold">Thao tác</th>
+                      <th className="text-left px-5 py-3.5 text-gray-500 font-semibold hidden md:table-cell">Email</th>
+                      <th className="text-center px-4 py-3.5 text-gray-500 font-semibold">Xu 🪙</th>
+                      <th className="text-center px-4 py-3.5 text-gray-500 font-semibold hidden sm:table-cell">Đã tiêu 🔥</th>
+                      <th className="text-center px-4 py-3.5 text-gray-500 font-semibold hidden sm:table-cell">Readings 🃏</th>
+                      <th className="text-left px-4 py-3.5 text-gray-500 font-semibold hidden lg:table-cell">Hoạt động cuối</th>
+                      <th className="text-left px-4 py-3.5 text-gray-500 font-semibold hidden lg:table-cell">Tham gia</th>
+                      <th className="text-center px-4 py-3.5 text-gray-500 font-semibold">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -295,17 +316,37 @@ export default function AdminPage() {
                               // eslint-disable-next-line @next/next/no-img-element
                               ? <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover"/>
                               : <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">{(user.name??user.email)?.[0]?.toUpperCase()}</div>}
-                            <span className="font-medium text-gray-700">{user.name??"—"}</span>
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-700 truncate max-w-[120px]">{user.name??"—"}</p>
+                              <p className="text-xs text-gray-400 truncate max-w-[120px] md:hidden">{user.email}</p>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-gray-500">{user.email}</td>
-                        <td className="px-5 py-3.5 text-center">
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${user.coins===0?"bg-gray-100 text-gray-400":user.coins>=100?"bg-purple-100 text-purple-700":"bg-amber-50 text-amber-700"}`}>
+                        <td className="px-5 py-3.5 text-gray-500 text-sm hidden md:table-cell">{user.email}</td>
+                        <td className="px-4 py-3.5 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold ${user.coins===0?"bg-gray-100 text-gray-400":user.coins>=100?"bg-purple-100 text-purple-700":"bg-amber-50 text-amber-700"}`}>
                             🪙 {user.coins}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-gray-400">{new Date(user.created_at).toLocaleDateString("vi-VN")}</td>
-                        <td className="px-5 py-3.5 text-center">
+                        <td className="px-4 py-3.5 text-center hidden sm:table-cell">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold ${(user.coins_spent??0)===0?"bg-gray-100 text-gray-400":"bg-orange-50 text-orange-600"}`}>
+                            🔥 {user.coins_spent??0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-center hidden sm:table-cell">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold ${user.readings_count===0?"bg-gray-100 text-gray-400":"bg-blue-50 text-blue-600"}`}>
+                            🃏 {user.readings_count}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-gray-400 text-sm hidden lg:table-cell">
+                          {user.last_active
+                            ? new Date(user.last_active).toLocaleDateString("vi-VN")
+                            : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3.5 text-gray-400 text-sm hidden lg:table-cell">
+                          {new Date(user.created_at).toLocaleDateString("vi-VN")}
+                        </td>
+                        <td className="px-4 py-3.5 text-center">
                           <button onClick={()=>{setEditUser(user);setEditCoins("");setEditMode("add");}} className="px-3 py-1.5 text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg font-semibold transition">Sửa xu</button>
                         </td>
                       </tr>

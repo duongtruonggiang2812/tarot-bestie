@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   if (action === "spend" && amount > 0) {
     const { data } = await admin
       .from("users")
-      .select("coins")
+      .select("coins, coins_spent")
       .eq("id", session.user.id)
       .single();
 
@@ -43,7 +43,10 @@ export async function POST(req: NextRequest) {
 
     await admin
       .from("users")
-      .update({ coins: data.coins - amount })
+      .update({
+        coins: data.coins - amount,
+        coins_spent: (data.coins_spent ?? 0) + amount,
+      })
       .eq("id", session.user.id);
 
     return NextResponse.json({ success: true, coins: data.coins - amount });

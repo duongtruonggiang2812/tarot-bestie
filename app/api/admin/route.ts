@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-// Thêm email admin ở đây (hoặc dùng env var ADMIN_EMAILS)
 const HARDCODED_ADMINS = ["duongtruonggiang2812@gmail.com", "truonggiangduong2812@gmail.com"];
 const ADMIN_EMAILS = [
   ...HARDCODED_ADMINS,
@@ -15,7 +14,7 @@ function isAdmin(email?: string | null) {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
-// GET /api/admin — danh sách tất cả users
+// GET /api/admin — danh sách users kèm stats sử dụng
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session?.user?.email)) {
@@ -33,7 +32,7 @@ export async function GET(req: NextRequest) {
 
   let query = admin
     .from("users")
-    .select("id, email, name, avatar, coins, created_at", { count: "exact" })
+    .select("id, email, name, avatar, coins, coins_spent, created_at", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(from, from + limit - 1);
 
@@ -41,10 +40,58 @@ export async function GET(req: NextRequest) {
     query = query.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
   }
 
-  const { data, error, count } = await query;
+  const { data: users, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ users: data, total: count ?? 0, page, limit });
+  // Fetch readings stats for users on this page
+  const userIds = (users ?? []).map((u) => u.id);
+  let readingStats: Record<string, { count: number; last_active: string }> = {};
+
+  if (userIds.length > 0) {
+    const { data: readings } = await admin
+      .from("readings")
+      .select("user_id, created_at")
+      .in("user_id", userIds);
+
+    readingStats = (readings ?? []).reduce(
+      (acc: Record<string, { count: number; last_active: string }>, r) => {
+        if (!acc[r.user_id]) acc[r.user_id] = { count: 0, last_active: r.created_at };
+        acc[r.user_id].count++;
+        if (r.created_at > acc[r.user_id].last_active) acc[r.user_id].last_active = r.created_at;
+        return acc;
+      },
+      {}
+    );
+  }
+
+  // Fetch global summary stats
+  const [{ count: totalReadings }, { data: activeUsers }] = await Promise.all([
+    admin.from("readings").select("*", { count: "exact", head: true }),
+    admin
+      .from("readings")
+      .select("user_id")
+      .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()),
+  ]);
+
+  const activeUserCount = new Set((activeUsers ?? []).map((r) => r.user_id)).size;
+
+  const enrichedUsers = (users ?? []).map((u) => ({
+    ...u,
+    coins_spent: u.coins_spent ?? 0,
+    readings_count: readingStats[u.id]?.count ?? 0,
+    last_active: readingStats[u.id]?.last_active ?? null,
+  }));
+
+  return NextResponse.json({
+    users: enrichedUsers,
+    total: count ?? 0,
+    page,
+    limit,
+    summary: {
+      total_readings: totalReadings ?? 0,
+      active_users_7d: activeUserCount,
+    },
+  });
 }
 
 // POST /api/admin — cập nhật xu của user
@@ -62,7 +109,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid params" }, { status: 400 });
   }
 
-  const { data: user } = await admin.from("users").select("coins").eq("id", userId).single();
+  const { data: user } = await admin
+    .from("users")
+    .select("coins, coins_spent")
+    .eq("id", userId)
+    .single();
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   let newCoins = user.coins;
