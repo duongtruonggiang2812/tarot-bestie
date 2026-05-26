@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Nunito } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
 import { SEO, SITE_URL, SITE_NAME } from "@/lib/seo";
+
+const GA_ID = "G-H7SFM5Z6E2";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -64,6 +67,19 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${playfair.variable} ${nunito.variable}`}>
       <body className="min-h-screen">
+        {/* Google Analytics 4 */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}', { page_path: window.location.pathname });
+          `}
+        </Script>
         <Providers>
           <InAppBrowserWarning />
           {children}
